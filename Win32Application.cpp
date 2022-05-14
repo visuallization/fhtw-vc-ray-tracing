@@ -92,6 +92,8 @@ LRESULT CALLBACK Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wP
 		{
 			pSample->OnKeyDown(static_cast<UINT8>(wParam));
 		}
+
+		if (static_cast<UINT8>(wParam) == VK_ESCAPE) PostQuitMessage(0);
 		return 0;
 
 	case WM_KEYUP:
