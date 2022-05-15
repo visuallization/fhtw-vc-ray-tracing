@@ -721,7 +721,12 @@ rasterizer.
 To do this, we take the barycentric coordinates attribute `attrib` provided by the built-in triangle intersection shader,
 and use those to interpolate between hardcoded color values. We then write in the payload, which will make those values
 available in the ray generation shader afterwards.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C float3 barycentrics = float3(1.f - attrib.bary.x - attrib.bary.y, attrib.bary.x, attrib.bary.y); const float3 A = float3(1, 0, 0); const float3 B = float3(0, 1, 0); const float3 C = float3(0, 0, 1); float3 hitColor = A * barycentrics.x + B * barycentrics.y + C * barycentrics.z; payload.colorAndDistance = float4(hitColor, RayTCurrent());
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C 
+float3 barycentrics = float3(1.f - attrib.bary.x - attrib.bary.y, attrib.bary.x, attrib.bary.y); 
+const float3 A = float3(1, 0, 0); 
+const float3 B = float3(0, 1, 0); 
+const float3 C = float3(0, 0, 1); 
+float3 hitColor = A * barycentrics.x + B * barycentrics.y + C * barycentrics.z; payload.colorAndDistance = float4(hitColor, RayTCurrent());
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ![Figure [step]: Color interpolation using barycentrics](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/Hit1.png width="350px")
 ## Miss Shader
@@ -735,6 +740,7 @@ float ramp = launchIndex.y / dims.y;
 payload.colorAndDistance = float4(0.0f, 0.2f, 0.7f - 0.3f*ramp, -1.0f);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/Miss1.png width="350px")
+
 !!! Tip: Experimentation You can modify the values in the Miss shader to see the background changing. If you modify the code in the Hit shader, you can change how the triangle is rendered.
 # Using the Vertex Buffer
 The colors in our Hit shader are hardcoded in the shader, to enforce consistency between rasterization and
