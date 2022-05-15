@@ -98,7 +98,13 @@ descriptors into a `D3D12_ROOT_SIGNATURE_DESC`, itself used to call `D3D12Serial
 // The ray generation shader needs to access 2 resources: the raytracing output
 // and the top-level acceleration structure
 //
-ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateRayGenSignature() { nv_helpers_dx12::RootSignatureGenerator rsc; rsc.AddHeapRangesParameter( {{0 /*u0*/, 1 /*1 descriptor */, 0 /*use the implicit register space 0*/, D3D12_DESCRIPTOR_RANGE_TYPE_UAV /* UAV representing the output buffer*/, 0 /*heap slot where the UAV is defined*/}, {0 /*t0*/, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV /*Top-level acceleration structure*/, 1}}); return rsc.Generate(m_device.Get(), true);
+ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateRayGenSignature() { 
+    nv_helpers_dx12::RootSignatureGenerator rsc; 
+    rsc.AddHeapRangesParameter( {
+        {0 /*u0*/, 1 /*1 descriptor */, 0 /*use the implicit register space 0*/, D3D12_DESCRIPTOR_RANGE_TYPE_UAV /* UAV representing the output buffer*/, 0 /*heap slot where the UAV is defined*/}, 
+        {0 /*t0*/, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV /*Top-level acceleration structure*/, 1}
+    }); 
+    return rsc.Generate(m_device.Get(), true);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## CreateHitSignature
@@ -109,7 +115,9 @@ When the ray will hit the triangle, we will simply return a color in the payload
 // The hit shader communicates only through the ray payload, and therefore does
 // not require any resources
 //
-ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateHitSignature() { nv_helpers_dx12::RootSignatureGenerator rsc; return rsc.Generate(m_device.Get(), true);
+ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateHitSignature() { 
+    nv_helpers_dx12::RootSignatureGenerator rsc; 
+    return rsc.Generate(m_device.Get(), true);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## CreateMissSignature
@@ -120,7 +128,9 @@ ray payload.
 // The miss shader communicates only through the ray payload, and therefore
 // does not require any resources
 //
-ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateMissSignature() { nv_helpers_dx12::RootSignatureGenerator rsc; return rsc.Generate(m_device.Get(), true);
+ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateMissSignature() { 
+    nv_helpers_dx12::RootSignatureGenerator rsc; 
+    return rsc.Generate(m_device.Get(), true);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## CreateRaytracingPipeline
@@ -146,8 +156,14 @@ calling `IDxcCompiler::Compile()`, which returns the `IDxcBlob` pointer that we 
 void D3D12HelloTriangle::CreateRaytracingPipeline()
 { 
     nv_helpers_dx12::RayTracingPipelineGenerator pipeline(m_device.Get()); 
-    // The pipeline contains the DXIL code of all the shaders potentially executed // during the raytracing process. This section compiles the HLSL code into a // set of DXIL libraries. We chose to separate the code in several libraries // by semantic (ray generation, hit, miss) for clarity. Any code layout can be // used. 
-    m_rayGenLibrary = nv_helpers_dx12::CompileShaderLibrary(L"RayGen.hlsl"); m_missLibrary = nv_helpers_dx12::CompileShaderLibrary(L"Miss.hlsl"); m_hitLibrary = nv_helpers_dx12::CompileShaderLibrary(L"Hit.hlsl");
+    // The pipeline contains the DXIL code of all the shaders potentially executed 
+    // during the raytracing process. This section compiles the HLSL code into a 
+    // set of DXIL libraries. We chose to separate the code in several libraries 
+    // by semantic (ray generation, hit, miss) for clarity. Any code layout can be 
+    // used. 
+    m_rayGenLibrary = nv_helpers_dx12::CompileShaderLibrary(L"RayGen.hlsl"); 
+    m_missLibrary = nv_helpers_dx12::CompileShaderLibrary(L"Miss.hlsl"); 
+    m_hitLibrary = nv_helpers_dx12::CompileShaderLibrary(L"Hit.hlsl");
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A DXIL library can be seen similarly as a regular DLL, which contains compiled code that can be
@@ -157,7 +173,11 @@ add the library pointer in the pipeline, along with the name of the function it 
 a single library can export an arbitrary number of symbols, and that the pipeline is allowed to only
 import a subset of those.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C 
-// In a way similar to DLLs, each library is associated with a number of // exported symbols. This // has to be done explicitly in the lines below. Note that a single library // can contain an arbitrary number of symbols, whose semantic is given in HLSL // using the [shader("xxx")] syntax 
+// In a way similar to DLLs, each library is associated with a number of 
+// exported symbols. This 
+// has to be done explicitly in the lines below. Note that a single library 
+// can contain an arbitrary number of symbols, whose semantic is given in HLSL 
+// using the [shader("xxx")] syntax 
 pipeline.AddLibrary(m_rayGenLibrary.Get(), {L"RayGen"}); 
 pipeline.AddLibrary(m_missLibrary.Get(), {L"Miss"}); 
 pipeline.AddLibrary(m_hitLibrary.Get(), {L"ClosestHit"});
@@ -165,7 +185,8 @@ pipeline.AddLibrary(m_hitLibrary.Get(), {L"ClosestHit"});
 As described at the beginning of this section, to each shader corresponds a root signature defining
 its external inputs.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C 
-// To be used, each DX12 shader needs a root signature defining which // parameters and buffers will be accessed. 
+// To be used, each DX12 shader needs a root signature defining which 
+// parameters and buffers will be accessed. 
 m_rayGenSignature = CreateRayGenSignature(); 
 m_missSignature = CreateMissSignature(); 
 m_hitSignature = CreateHitSignature();
@@ -175,12 +196,33 @@ shader, the any hit shader, and the closest hit shader. Those 3 shaders are boun
 a hit group. In our case we use the built-in intersection and any hit shaders, so our hit group
 `HitGroup` only contains the closest hit shader `ClosestHit`.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
-// 3 different shaders can be invoked to obtain an intersection: an // intersection shader is called // when hitting the bounding box of non-triangular geometry. This is beyond // the scope of this tutorial. An any-hit shader is called on potential // intersections. This shader can, for example, perform alpha-testing and // discard some intersections. Finally, the closest-hit program is invoked on // the intersection point closest to the ray origin. Those 3 shaders are bound // together into a hit group. // Note that for triangular geometry the intersection shader is built-in. An // empty any-hit shader is also defined by default, so in our simple case each // hit group contains only the closest hit shader. Note that since the // exported symbols are defined above the shaders can be simply referred to by // name. // Hit group for the triangles, with a shader simply interpolating vertex // colors 
+// 3 different shaders can be invoked to obtain an intersection: an 
+// intersection shader is called 
+// when hitting the bounding box of non-triangular geometry. This is beyond 
+// the scope of this tutorial. An any-hit shader is called on potential 
+// intersections. This shader can, for example, perform alpha-testing and 
+// discard some intersections. Finally, the closest-hit program is invoked on 
+// the intersection point closest to the ray origin. Those 3 shaders are bound 
+// together into a hit group. 
+// Note that for triangular geometry the intersection shader is built-in. An 
+// empty any-hit shader is also defined by default, so in our simple case each 
+// hit group contains only the closest hit shader. Note that since the 
+// exported symbols are defined above the shaders can be simply referred to by 
+// name. 
+// Hit group for the triangles, with a shader simply interpolating vertex 
+// colors 
 pipeline.AddHitGroup(L"HitGroup", L"ClosestHit");
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ To be used, each shader needs to be associated to its root signature. A shaders imported from the DXIL libraries needs to be associated with exactly one root signature. The shaders comprising the hit groups need to share the same root signature, which is associated to the hit group (and not to the shaders themselves). Note that a shader does not have to actually access all the resources declared in its root signature, as long as the root signature defines a superset of the resources the shader needs.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+To be used, each shader needs to be associated to its root signature. A shaders imported from the DXIL libraries needs to be associated with exactly one root signature. The shaders comprising the hit groups need to share the same root signature, which is associated to the hit group (and not to the shaders themselves). Note that a shader does not have to actually access all the resources declared in its root signature, as long as the root signature defines a superset of the resources the shader needs.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
 // The following section associates the root signature to each shader. Note 
-// that we can explicitly show that some shaders share the same root signature // (eg. Miss and ShadowMiss). Note that the hit shaders are now only referred // to as hit groups, meaning that the underlying intersection, any-hit and // closest-hit shaders share the same root signature. pipeline.AddRootSignatureAssociation(m_rayGenSignature.Get(), {L"RayGen"}); pipeline.AddRootSignatureAssociation(m_missSignature.Get(), {L"Miss"}); pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), {L"HitGroup"});
+// that we can explicitly show that some shaders share the same root signature 
+// (eg. Miss and ShadowMiss). Note that the hit shaders are now only referred 
+// to as hit groups, meaning that the underlying intersection, any-hit and 
+// closest-hit shaders share the same root signature. 
+pipeline.AddRootSignatureAssociation(m_rayGenSignature.Get(), {L"RayGen"}); 
+pipeline.AddRootSignatureAssociation(m_missSignature.Get(), {L"Miss"}); 
+pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), {L"HitGroup"});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The `Set*` methods setup specific subobjects related to the global properties of the pipeline itself:
 * The maximum payload size used by the shaders, which defines the amount of data a shader can exchange with other shaders. A typical example is a payload containing a color value, so that the hit or miss shaders can return this value to the ray generation program, which will write that value to the output buffer. To achieve best performance the payload needs to be kept as small as possible. In our case the payload contains 4 floating-point values stored in the `HitInfo` structure in `Common.hlsl`, representing the output color and the distance of the hit from the ray origin.
@@ -190,11 +232,21 @@ The `Set*` methods setup specific subobjects related to the global properties of
 // The payload size defines the maximum size of the data carried by the rays, 
 // ie. the the data 
 // exchanged between shaders, such as the HitInfo structure in the HLSL code. 
-// It is important to keep this value as low as possible as a too high value // would result in unnecessary memory consumption and cache trashing. 
+// It is important to keep this value as low as possible as a too high value 
+// would result in unnecessary memory consumption and cache trashing. 
 pipeline.SetMaxPayloadSize(4 * sizeof(float)); 
-// RGB + distance // Upon hitting a surface, DXR can provide several attributes to the hit. In // our sample we just use the barycentric coordinates defined by the weights // u,v of the last two vertices of the triangle. The actual barycentrics can // be obtained using float3 barycentrics = float3(1.f-u-v, u, v); 
+// RGB + distance 
+// Upon hitting a surface, DXR can provide several attributes to the hit. In 
+// our sample we just use the barycentric coordinates defined by the weights 
+// u,v of the last two vertices of the triangle. The actual barycentrics can 
+// be obtained using float3 barycentrics = float3(1.f-u-v, u, v); 
 pipeline.SetMaxAttributeSize(2 * sizeof(float)); 
-// barycentric coordinates // The raytracing process can shoot rays from existing hit points, resulting // in nested TraceRay calls. Our sample code traces only primary rays, which // then requires a trace depth of 1. Note that this recursion depth should be // kept to a minimum for best performance. Path tracing algorithms can be // easily flattened into a simple loop in the ray generation. 
+// barycentric coordinates 
+// The raytracing process can shoot rays from existing hit points, resulting 
+// in nested TraceRay calls. Our sample code traces only primary rays, which 
+// then requires a trace depth of 1. Note that this recursion depth should be 
+// kept to a minimum for best performance. Path tracing algorithms can be 
+// easily flattened into a simple loop in the ray generation. 
 pipeline.SetMaxRecursionDepth(1);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The pipeline now has all the information it needs. We generate the pipeline by calling the `Generate`
@@ -246,7 +298,21 @@ It is then important that the raytracing output buffer is created with the `D3D1
 // Allocate the buffer holding the raytracing output, with the same size as the
 // output image
 //
-void D3D12HelloTriangle::CreateRaytracingOutputBuffer() { D3D12_RESOURCE_DESC resDesc = {}; resDesc.DepthOrArraySize = 1; resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D; // The backbuffer is actually DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, but sRGB // formats cannot be used with UAVs. For accuracy we should convert to sRGB // ourselves in the shader resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS; resDesc.Width = GetWidth(); resDesc.Height = GetHeight(); resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN; resDesc.MipLevels = 1; resDesc.SampleDesc.Count = 1; ThrowIfFailed(m_device->CreateCommittedResource( &nv_helpers_dx12::kDefaultHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&m_outputResource)));
+void D3D12HelloTriangle::CreateRaytracingOutputBuffer() { 
+    D3D12_RESOURCE_DESC resDesc = {};
+    resDesc.DepthOrArraySize = 1;
+    resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D; 
+    // The backbuffer is actually DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, but sRGB 
+    // formats cannot be used with UAVs. For accuracy we should convert to sRGB 
+    // ourselves in the shader 
+    resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; 
+    resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS; 
+    resDesc.Width = GetWidth(); 
+    resDesc.Height = GetHeight(); 
+    resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN; 
+    resDesc.MipLevels = 1; 
+    resDesc.SampleDesc.Count = 1; 
+    ThrowIfFailed(m_device->CreateCommittedResource( &nv_helpers_dx12::kDefaultHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&m_outputResource)));
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## CreateShaderResourceHeap
@@ -263,7 +329,27 @@ flag `D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE`.
 // Create the main heap used by the shaders, which will give access to the
 // raytracing output and the top-level acceleration structure
 //
-void D3D12HelloTriangle::CreateShaderResourceHeap() { // Create a SRV/UAV/CBV descriptor heap. We need 2 entries - 1 UAV for the // raytracing output and 1 SRV for the TLAS m_srvUavHeap = nv_helpers_dx12::CreateDescriptorHeap( m_device.Get(), 2, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true); // Get a handle to the heap memory on the CPU side, to be able to write the // descriptors directly D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = m_srvUavHeap->GetCPUDescriptorHandleForHeapStart(); // Create the UAV. Based on the root signature we created it is the first // entry. The Create*View methods write the view information directly into // srvHandle D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {}; uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D; m_device->CreateUnorderedAccessView(m_outputResource.Get(), nullptr, &uavDesc, srvHandle); // Add the Top Level AS SRV right after the raytracing output buffer srvHandle.ptr += m_device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc; srvDesc.Format = DXGI_FORMAT_UNKNOWN; srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE; srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; srvDesc.RaytracingAccelerationStructure.Location = m_topLevelASBuffers.pResult->GetGPUVirtualAddress(); // Write the acceleration structure view in the heap m_device->CreateShaderResourceView(nullptr, &srvDesc, srvHandle);
+void D3D12HelloTriangle::CreateShaderResourceHeap() { 
+    // Create a SRV/UAV/CBV descriptor heap. We need 2 entries - 1 UAV for the 
+    // raytracing output and 1 SRV for the TLAS 
+    m_srvUavHeap = nv_helpers_dx12::CreateDescriptorHeap( m_device.Get(), 2, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true); 
+    // Get a handle to the heap memory on the CPU side, to be able to write the 
+    // descriptors directly 
+    D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = m_srvUavHeap->GetCPUDescriptorHandleForHeapStart(); 
+    // Create the UAV. Based on the root signature we created it is the first 
+    // entry. The Create*View methods write the view information directly into 
+    // srvHandle 
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {}; 
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D; 
+    m_device->CreateUnorderedAccessView(m_outputResource.Get(), nullptr, &uavDesc, srvHandle); 
+    // Add the Top Level AS SRV right after the raytracing output buffer 
+    srvHandle.ptr += m_device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); 
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc; 
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN; srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE; 
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; 
+    srvDesc.RaytracingAccelerationStructure.Location = m_topLevelASBuffers.pResult->GetGPUVirtualAddress(); 
+    // Write the acceleration structure view in the heap 
+    m_device->CreateShaderResourceView(nullptr, &srvDesc, srvHandle);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## OnInit
@@ -300,7 +386,7 @@ their input resources in GPU memory. The `Generate` call maps the input buffer a
 identifier using `ID3D12StateObjectProperties::GetShaderIdentifier()` and copies its resource pointers afterwards. The helper first copies
 the ray generation programs, then the miss programs, and finally the hit groups.
 And add the following declaration:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
 // #DXR
 void CreateShaderBindingTable();
 nv_helpers_dx12::ShaderBindingTableGenerator m_sbtHelper;
@@ -418,7 +504,8 @@ memory where the descriptors of the heap are stored using `GetGPUDescriptorHandl
 // Using the helper class, those can be specified in arbitrary order.
 //
 void D3D12HelloTriangle::CreateShaderBindingTable() { 
-    // The SBT helper class collects calls to Add*Program. If called several // times, the helper must be emptied before re-adding shaders. 
+    // The SBT helper class collects calls to Add*Program. If called several 
+    // times, the helper must be emptied before re-adding shaders. 
     m_sbtHelper.Reset(); 
     // The pointer to the beginning of the heap is the only parameter required by 
     // shaders without root parameters 
@@ -428,8 +515,11 @@ The `ptr` member of the GPU handle on the heap memory has a `UINT64` type, even 
 a pointer. Since the helper class only takes pointers to define shader resources, we need to cast the
 64-bit integer into a 64-bit pointer.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
-// The helper treats both root parameter pointers and heap pointers as void*, // while DX12 uses the // D3D12_GPU_DESCRIPTOR_HANDLE to define heap pointers. The pointer in this // struct is a UINT64, which then has to be reinterpreted as a pointer. 
-auto heapPointer = reinterpret_cast<UINT64 *>(srvUavHeapHandle.ptr);
+// The helper treats both root parameter pointers and heap pointers as void*, 
+// while DX12 uses the 
+// D3D12_GPU_DESCRIPTOR_HANDLE to define heap pointers. The pointer in this 
+// struct is a UINT64, which then has to be reinterpreted as a pointer. 
+auto heapPointer = reinterpret_cast<UINT64*>(srvUavHeapHandle.ptr);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 We can now add the various programs used in our example: according to its root signature, the ray generation shader needs to access
 the raytracing output buffer and the top-level acceleration structure referenced in the heap. Therefore, it
@@ -456,9 +546,12 @@ compute the size of the resulting SBT. For each shader type this method simply c
 of the shaders of that type. From this, and the size of a shader identifier, the final SBT size can be obtained.
 We then allocate the SBT on the upload heap. This is important as the SBT generation is done through buffer mapping.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C 
-// Compute the size of the SBT given the number of shaders and their // parameters 
+// Compute the size of the SBT given the number of shaders and their 
+// parameters 
 uint32_t sbtSize = m_sbtHelper.ComputeSBTSize(); 
-// Create the SBT on the upload heap. This is required as the helper will use // mapping to write the SBT contents. After the SBT compilation it could be // copied to the default heap for performance. 
+// Create the SBT on the upload heap. This is required as the helper will use 
+// mapping to write the SBT contents. After the SBT compilation it could be 
+// copied to the default heap for performance. 
 m_sbtStorage = nv_helpers_dx12::CreateBuffer( m_device.Get(), sbtSize, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, nv_helpers_dx12::kUploadHeapProps);
 if (!m_sbtStorage) { 
     throw std::logic_error("Could not allocate the shader binding table");
