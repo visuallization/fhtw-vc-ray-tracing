@@ -227,8 +227,17 @@ In the `WindowProc` of `Win32Application.cpp`, capture the mouse button and move
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 case WM_LBUTTONDOWN:
 case WM_RBUTTONDOWN:
-case WM_MBUTTONDOWN: if (pSample) { pSample->OnButtonDown(static_cast<UINT32>(lParam)); } return 0;
-case WM_MOUSEMOVE: if (pSample) { pSample->OnMouseMove(static_cast<UINT8>(wParam), static_cast<UINT32>(lParam)); } return 0;
+case WM_MBUTTONDOWN: 
+    if (pSample) {
+        pSample->OnButtonDown(static_cast<UINT32>(lParam));
+    } 
+    return 0;
+
+case WM_MOUSEMOVE: 
+    if (pSample) { 
+        pSample->OnMouseMove(static_cast<UINT8>(wParam), static_cast<UINT32>(lParam)); 
+    } 
+    return 0;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## D3D12HelloTriangle
 Add the declaration of the overloaded functions to the class.
@@ -257,13 +266,24 @@ Create the implementation for the mouse interaction
 //
 //
 void D3D12HelloTriangle::OnButtonDown(UINT32 lParam)
-{ nv_helpers_dx12::CameraManip.setMousePosition(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam));
+{ 
+    nv_helpers_dx12::CameraManip.setMousePosition(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam));
 }
 //--------------------------------------------------------------------------------------------------
 //
 //
 void D3D12HelloTriangle::OnMouseMove(UINT8 wParam, UINT32 lParam)
-{ using nv_helpers_dx12::Manipulator; Manipulator::Inputs inputs; inputs.lmb = wParam & MK_LBUTTON; inputs.mmb = wParam & MK_MBUTTON; inputs.rmb = wParam & MK_RBUTTON; if (!inputs.lmb && !inputs.rmb && !inputs.mmb) return; // no mouse button pressed inputs.ctrl = GetAsyncKeyState(VK_CONTROL); inputs.shift = GetAsyncKeyState(VK_SHIFT); inputs.alt = GetAsyncKeyState(VK_MENU); CameraManip.mouseMove(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam), inputs);
+{ 
+    using nv_helpers_dx12::Manipulator;
+    Manipulator::Inputs inputs;
+    inputs.lmb = wParam & MK_LBUTTON;
+    inputs.mmb = wParam & MK_MBUTTON;
+    inputs.rmb = wParam & MK_RBUTTON;
+    if (!inputs.lmb && !inputs.rmb && !inputs.mmb) return; // no mouse button pressed 
+    inputs.ctrl = GetAsyncKeyState(VK_CONTROL); 
+    inputs.shift = GetAsyncKeyState(VK_SHIFT); 
+    inputs.alt = GetAsyncKeyState(VK_MENU); 
+    CameraManip.mouseMove(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam), inputs);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## UpdateCameraBuffer

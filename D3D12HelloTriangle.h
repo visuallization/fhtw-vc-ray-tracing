@@ -45,6 +45,9 @@ public:
 	virtual void OnRender();
 	virtual void OnDestroy();
 
+	virtual void OnButtonDown(UINT32 lParam);
+	virtual void OnMouseMove(UINT8 wParam, UINT32 lParam);
+
 private:
 	static const UINT FrameCount = 2;
 

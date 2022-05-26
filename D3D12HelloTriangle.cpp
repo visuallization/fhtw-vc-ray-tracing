@@ -19,6 +19,10 @@
 #include "vendor/dxr/nv_helpers_dx12/RaytracingPipelineGenerator.h"
 #include "vendor/dxr/nv_helpers_dx12/RootSignatureGenerator.h"
 
+#include <glm/gtc/type_ptr.hpp>
+#include "manipulator.h"
+#include "Windowsx.h"
+
 D3D12HelloTriangle::D3D12HelloTriangle(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
 	m_frameIndex(0),
@@ -30,6 +34,10 @@ D3D12HelloTriangle::D3D12HelloTriangle(UINT width, UINT height, std::wstring nam
 
 void D3D12HelloTriangle::OnInit()
 {
+	// Camera
+	nv_helpers_dx12::CameraManip.setWindowSize(GetWidth(), GetHeight());
+	nv_helpers_dx12::CameraManip.setLookat(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
 	LoadPipeline();
 	LoadAssets();
 	CheckRaytracingSupport();
@@ -785,24 +793,49 @@ void D3D12HelloTriangle::CreateCameraBuffer() {
 // Create and copies the viewmodel and perspective matrices of the camera
 void D3D12HelloTriangle::UpdateCameraBuffer() {
 	std::vector<XMMATRIX> matrices(4);
+
 	// Initialize the view matrix, ideally this should be based on user 
 	// interactions The lookat and perspective matrices used for rasterization are 
 	// defined to transform world-space vertices into a [0,1]x[0,1]x[0,1] camera space 
-	XMVECTOR Eye = XMVectorSet(1.5f, 1.5f, 1.5f, 0.0f);
-	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	matrices[0] = XMMatrixLookAtRH(Eye, At, Up);
+	const glm::mat4& mat = nv_helpers_dx12::CameraManip.getMatrix();
+	memcpy(&matrices[0].r->m128_f32[0], glm::value_ptr(mat), 16 * sizeof(float));
+
 	float fovAngleY = 45.0f * XM_PI / 180.0f;
 	matrices[1] = XMMatrixPerspectiveFovRH(fovAngleY, m_aspectRatio, 0.1f, 1000.0f);
+
 	// Raytracing has to do the contrary of rasterization: rays are defined in
 	// camera space, and are transformed into world space. To do this, we need to 
 	// store the inverse matrices as well. 
 	XMVECTOR det;
 	matrices[2] = XMMatrixInverse(&det, matrices[0]);
 	matrices[3] = XMMatrixInverse(&det, matrices[1]);
+
 	// Copy the matrix contents 
 	uint8_t* pData;
 	ThrowIfFailed(m_cameraBuffer->Map(0, nullptr, (void**)&pData));
 	memcpy(pData, matrices.data(), m_cameraBufferSize);
 	m_cameraBuffer->Unmap(0, nullptr);
+}
+
+void D3D12HelloTriangle::OnButtonDown(UINT32 lParam)
+{
+	nv_helpers_dx12::CameraManip.setMousePosition(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam));
+}
+
+void D3D12HelloTriangle::OnMouseMove(UINT8 wParam, UINT32 lParam)
+{
+	using nv_helpers_dx12::Manipulator;
+
+	Manipulator::Inputs inputs;
+	inputs.lmb = wParam & MK_LBUTTON;
+	inputs.mmb = wParam & MK_MBUTTON;
+	inputs.rmb = wParam & MK_RBUTTON;
+
+	// no mouse button pressed
+	if (!inputs.lmb && !inputs.rmb && !inputs.mmb) return;
+
+	inputs.ctrl = GetAsyncKeyState(VK_CONTROL);
+	inputs.shift = GetAsyncKeyState(VK_SHIFT);
+	inputs.alt = GetAsyncKeyState(VK_MENU);
+	CameraManip.mouseMove(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam), inputs);
 }
