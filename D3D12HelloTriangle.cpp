@@ -631,7 +631,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// using the [shader("xxx")] syntax 
 	pipeline.AddLibrary(m_rayGenLibrary.Get(), {L"RayGen"});
 	pipeline.AddLibrary(m_missLibrary.Get(), {L"Miss"});
-	pipeline.AddLibrary(m_hitLibrary.Get(), {L"ClosestHit"});
+	pipeline.AddLibrary(m_hitLibrary.Get(), { L"ClosestHit", L"PlaneClosestHit" });
 
 	// To be used, each DX12 shader needs a root signature defining which
 	// parameters and buffers will be accessed.
@@ -655,6 +655,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// Hit group for the triangles, with a shader simply interpolating vertex 
 	// colors
 	pipeline.AddHitGroup(L"HitGroup", L"ClosestHit");
+	pipeline.AddHitGroup(L"PlaneHitGroup", L"PlaneClosestHit");
 
 	// The following section associates the root signature to each shader. Note 
 	// that we can explicitly show that some shaders share the same root signature 
@@ -663,7 +664,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// closest-hit shaders share the same root signature. 
 	pipeline.AddRootSignatureAssociation(m_rayGenSignature.Get(), {L"RayGen"}); 
 	pipeline.AddRootSignatureAssociation(m_missSignature.Get(), {L"Miss"}); 
-	pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), {L"HitGroup"});
+	pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), { L"HitGroup", L"PlaneHitGroup" });
 
 	// The payload size defines the maximum size of the data carried by the rays, 
 	// ie. the the data 
@@ -782,7 +783,7 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	}
 
 	// The plane also uses a constant buffer for its vertex colors
-	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_perInstanceConstantBuffers[0]->GetGPUVirtualAddress()) });
+	m_sbtHelper.AddHitGroup(L"PlaneHitGroup", {});
 
 	// Compute the size of the SBT given the number of shadersand their 
 	// parameters 

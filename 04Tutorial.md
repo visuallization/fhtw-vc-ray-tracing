@@ -383,7 +383,7 @@ pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), {L"HitGroup", L"Plane
 The 4th hit group of the SBT is the one corresponding to the plane. Instead of using `HitGroup`, we now
 associate it to our newly created hit group, `PlaneHitGroup`. Since this shader does not require any external data,
 we can leave its input resources empty.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 // Adding the plane
 m_sbtHelper.AddHitGroup(L"PlaneHitGroup", {});
