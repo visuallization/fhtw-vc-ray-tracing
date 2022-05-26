@@ -8,26 +8,27 @@ struct STriVertex
 
 StructuredBuffer<STriVertex> BTriVertex : register(t0);
 
+
+cbuffer Colors : register(b0)
+{
+	float3 A[3];
+	float3 B[3];
+	float3 C[3];
+}
+
 [shader("closesthit")] 
 void ClosestHit(inout HitInfo payload, Attributes attrib) 
 {
 	float3 barycentrics = float3(1.f - attrib.bary.x - attrib.bary.y, attrib.bary.x, attrib.bary.y);
-	uint vertId = 3 * PrimitiveIndex();
+	
+	int instanceID = InstanceID();
 
-    float3 hitColor = float3(0.7, 0.7, 0.7);
-
-    switch (InstanceID())
-    {
-    case 0:
-        hitColor = BTriVertex[vertId + 0].color * barycentrics.x + BTriVertex[vertId + 1].color * barycentrics.y + BTriVertex[vertId + 2].color * barycentrics.z;
-        break;
-    case 1:
-        hitColor = BTriVertex[vertId + 1].color * barycentrics.x + BTriVertex[vertId + 1].color * barycentrics.y + BTriVertex[vertId + 2].color * barycentrics.z;
-        break;
-    case 2:
-        hitColor = BTriVertex[vertId + 2].color * barycentrics.x + BTriVertex[vertId + 1].color * barycentrics.y + BTriVertex[vertId + 2].color * barycentrics.z;
-        break;
-    }
-
+	float3 hitColor = float3(0.6, 0.7, 0.6);
+	// Shade only the first 3 instances (triangles)
+	if (instanceID < 3)
+	{
+		hitColor = A[instanceID] * barycentrics.x + B[instanceID] * barycentrics.y + C[instanceID] * barycentrics.z;
+	}
+	
 	payload.colorAndDistance = float4(hitColor, RayTCurrent());
 }

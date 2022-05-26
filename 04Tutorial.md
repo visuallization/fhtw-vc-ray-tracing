@@ -141,7 +141,7 @@ a constant buffer containing color data, used in the shader to alter the vertex 
 Add the declarations in the header file:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
-void D3D12HelloTriangle::CreateGlobalConstantBuffer();
+void CreateGlobalConstantBuffer();
 ComPtr<ID3D12Resource> m_globalConstantBuffer;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Add the buffer allocation method at the end of the source file.
@@ -150,23 +150,41 @@ Add the buffer allocation method at the end of the source file.
 //
 // #DXR Extra: Per-Instance Data
 void D3D12HelloTriangle::CreateGlobalConstantBuffer()
-{ // Due to HLSL packing rules, we create the CB with 9 float4 (each needs to start on a 16-byte // boundary) XMVECTOR bufferData[] = { // A XMVECTOR{1.0f, 0.0f, 0.0f, 1.0f}, XMVECTOR{0.7f, 0.4f, 0.0f, 1.0f}, XMVECTOR{0.4f, 0.7f, 0.0f, 1.0f}, // B XMVECTOR{0.0f, 1.0f, 0.0f, 1.0f}, XMVECTOR{0.0f, 0.7f, 0.4f, 1.0f}, XMVECTOR{0.0f, 0.4f, 0.7f, 1.0f}, // C XMVECTOR{0.0f, 0.0f, 1.0f, 1.0f}, XMVECTOR{0.4f, 0.0f, 0.7f, 1.0f}, XMVECTOR{0.7f, 0.0f, 0.4f, 1.0f}, }; // Create our buffer m_globalConstantBuffer = nv_helpers_dx12::CreateBuffer( m_device.Get(), sizeof(bufferData), D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, nv_helpers_dx12::kUploadHeapProps); // Copy CPU memory to GPU uint8_t* pData; ThrowIfFailed(m_globalConstantBuffer->Map(0, nullptr, (void**)&pData)); memcpy(pData, bufferData, sizeof(bufferData)); m_globalConstantBuffer->Unmap(0, nullptr);
+{ 
+    // Due to HLSL packing rules, we create the CB with 9 float4 (each needs to start on a 16-byte boundary) 
+    XMVECTOR bufferData[] = { 
+        // A 
+        XMVECTOR{1.0f, 0.0f, 0.0f, 1.0f}, XMVECTOR{0.7f, 0.4f, 0.0f, 1.0f}, XMVECTOR{0.4f, 0.7f, 0.0f, 1.0f}, 
+        // B 
+        XMVECTOR{0.0f, 1.0f, 0.0f, 1.0f}, XMVECTOR{0.0f, 0.7f, 0.4f, 1.0f}, XMVECTOR{0.0f, 0.4f, 0.7f, 1.0f}, 
+        // C 
+        XMVECTOR{0.0f, 0.0f, 1.0f, 1.0f}, XMVECTOR{0.4f, 0.0f, 0.7f, 1.0f}, XMVECTOR{0.7f, 0.0f, 0.4f, 1.0f}, 
+    }; 
+    // Create our buffer 
+    m_globalConstantBuffer = nv_helpers_dx12::CreateBuffer( m_device.Get(), sizeof(bufferData), D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, nv_helpers_dx12::kUploadHeapProps); 
+    // Copy CPU memory to GPU 
+    uint8_t* pData; 
+    ThrowIfFailed(m_globalConstantBuffer->Map(0, nullptr, (void**)&pData)); 
+    memcpy(pData, bufferData, sizeof(bufferData));
+    m_globalConstantBuffer->Unmap(0, nullptr);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## OnInit
 The creation of the constant buffer can be added right after the call to `CreateRayTracingPipeline`:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 // Create a constant buffers, with a color for each vertex of the triangle, for each
 // triangle instance
 CreateGlobalConstantBuffer();
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## CreateHitSignature
 Now the geometry is set with the triangles, but the shaders have not been adapted yet to use the constant buffer.
 We first need to modify the root signature of the hit shader to use a constant buffer passed as a root parameter. Contrary to the
 buffers passed on the heap, root parameters can be passed per instance. Since this is the first constant buffer we declare in the
 root signature, we bind it to register 0: it will be accessible as `register(b0)` in the HLSL code.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 // The vertex colors may differ for each instance, so it is not possible to
 // point to a single buffer in the heap. Instead we use the concept of root
@@ -176,46 +194,56 @@ root signature, we bind it to register 0: it will be accessible as `register(b0)
 // HLSL as register(b0)
 rsc.AddRootParameter(D3D12_ROOT_PARAMETER_TYPE_CBV, 0);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## CreateShaderBindingTable
 The hit group for the triangle needs to access the constant buffer.
 For this, we add the pointer to the constant buffer in GPU memory to the set of resources accessed by the hit group.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 // Adding the triangle hit shader and constant buffer data
 m_sbtHelper.AddHitGroup(L"HitGroup", {(void*)m_globalConstantBuffer->GetGPUVirtualAddress()});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Hit.hlsl
 To access the constant buffer we replicate its structure in the HLSL code, and indicate the buffer is bound to the `b0` register:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 cbuffer Colors : register(b0)
-{ float3 A[3]; float3 B[3]; float3 C[3];
+{ 
+    float3 A[3]; 
+    float3 B[3]; 
+    float3 C[3];
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In the shader, we can directly access the buffer using the instance ID of the triangles to obtain a different color for each instance.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 float3 hitColor = float3(0.6, 0.7, 0.6);
 // Shade only the first 3 instances (triangles)
 if (InstanceID() < 3)
-{ hitColor = A[InstanceID()] * barycentrics.x + B[InstanceID()] * barycentrics.y + C[InstanceID()] * barycentrics.z;
+{ 
+    hitColor = A[InstanceID()] * barycentrics.x + B[InstanceID()] * barycentrics.y + C[InstanceID()] * barycentrics.z;
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffer.png)
 ## Accessing memory differently
 In the previous section we replicated the structure of the constant buffer exactly in the HLSL code. However, the mapping from the original
 data to the shader is arbitrary. For example, we could map it as an array of structures.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 struct MyStructColor
-{ float4 a; float4 b; float4 c;
+{ 
+    float4 a;
+    float4 b;
+    float4 c;
 };
+
 cbuffer Colors : register(b0)
-{ MyStructColor Tint[3];
+{ 
+    MyStructColor Tint[3];
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For each instance, we can now access the data this way:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 int instanceID = InstanceID();
 float3 hitColor = Tint[instanceID].a * barycentrics.x + Tint[instanceID].b * barycentrics.y + Tint[instanceID].c * barycentrics.z;

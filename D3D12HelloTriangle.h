@@ -143,4 +143,8 @@ private:
 	ComPtr<ID3D12Resource> m_planeBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_planeBufferView;
 	void CreatePlaneVB();
+
+	void CreateGlobalConstantBuffer();
+	ComPtr<ID3D12Resource> m_globalConstantBuffer;
 };
+
