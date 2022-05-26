@@ -60,6 +60,7 @@ void D3D12HelloTriangle::OnInit()
 	// triangle instance
 	CreateGlobalConstantBuffer();
 
+
 	// Allocate the buffer storing the raytracing output, with the same dimensions
 	// as the target image
 	CreateRaytracingOutputBuffer();
@@ -776,7 +777,6 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	// communicate their results through the ray payload 
 	m_sbtHelper.AddMissProgram(L"Miss", {}); 
 	// Adding the triangle hit shader and constant buffer data
-	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_vertexBuffer->GetGPUVirtualAddress()) });
 	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_globalConstantBuffer->GetGPUVirtualAddress()) });
 
 	// Compute the size of the SBT given the number of shadersand their 
@@ -923,3 +923,4 @@ void D3D12HelloTriangle::CreateGlobalConstantBuffer()
 	memcpy(pData, bufferData, sizeof(bufferData));
 	m_globalConstantBuffer->Unmap(0, nullptr);
 }
+
