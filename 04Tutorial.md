@@ -101,26 +101,32 @@ void D3D12HelloTriangle::CreatePlaneVB() {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## LoadAssets
 The plane buffers are added in `LoadAssets`, immediately after initializing `m_vertexBufferView`:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR - Per Instance
 // Create a vertex buffer for a ground plane, similarly to the triangle definition above
 CreatePlaneVB();
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## CreateAccelerationStructures
 After creating the bottom-level AS of the triangle, add the creation of the BLAS of the plane:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
-AccelerationStructureBuffers planeBottomLevelBuffers =
-CreateBottomLevelAS({{m_planeBuffer.Get(), 6}});
+AccelerationStructureBuffers planeBottomLevelBuffers = CreateBottomLevelAS({{m_planeBuffer.Get(), 6}});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Then we add a reference to the bottom-level AS of the plane in the instance list:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // 3 instances of the triangle + a plane
-m_instances = {{bottomLevelBuffers.pResult, XMMatrixIdentity()}, {bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)}, {bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)}, // #DXR Extra: Per-Instance Data {planeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)}};
+m_instances = {
+    {bottomLevelBuffers.pResult, XMMatrixIdentity()},
+    {bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)},
+    {bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
+    {planeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)}
+};
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## PopulateCommandList
 To be visible in the rasterization path, we add the following lines after the `DrawInstanced` call for the triangle:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 // In a way similar to triangle rendering, rasterize the plane
 m_commandList->IASetVertexBuffers(0, 1, &m_planeBufferView);
@@ -128,17 +134,18 @@ m_commandList->DrawInstanced(6, 1, 0, 0);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! Warning This is enough to add the plane, but we cannot see it!<br/> Add a [perspective camera](dxr_tutorial_extra_perspective) to see it.
 ![Adding a plane in raytracing mode](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3TrianglesPlane.png)
+
 # Using a Constant Buffer
 Constant buffer are used to send read-only data from the CPU side to the shaders. Here we will create
 a constant buffer containing color data, used in the shader to alter the vertex colors.
 Add the declarations in the header file:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Per-Instance Data
 void D3D12HelloTriangle::CreateGlobalConstantBuffer();
 ComPtr<ID3D12Resource> m_globalConstantBuffer;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Add the buffer allocation method at the end of the source file.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 //-----------------------------------------------------------------------------
 //
 // #DXR Extra: Per-Instance Data
