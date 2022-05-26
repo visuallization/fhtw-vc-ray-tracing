@@ -14,13 +14,14 @@
 
 #include <stdexcept>
 
-#include "vendor/dxr/DXRHelper.h"
-#include "vendor/dxr/nv_helpers_dx12/BottomLevelASGenerator.h"
-#include "vendor/dxr/nv_helpers_dx12/RaytracingPipelineGenerator.h"
-#include "vendor/dxr/nv_helpers_dx12/RootSignatureGenerator.h"
+#include <dxr/DXRHelper.h>
+#include <dxr/nv_helpers_dx12/BottomLevelASGenerator.h>
+#include <dxr/nv_helpers_dx12/RaytracingPipelineGenerator.h>
+#include <dxr/nv_helpers_dx12/RootSignatureGenerator.h>
+#include <dxr/nv_helpers_dx12/Manipulator.h>
 
 #include <glm/gtc/type_ptr.hpp>
-#include "manipulator.h"
+
 #include "Windowsx.h"
 
 D3D12HelloTriangle::D3D12HelloTriangle(UINT width, UINT height, std::wstring name) :

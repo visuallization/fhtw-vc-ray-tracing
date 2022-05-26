@@ -124,7 +124,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="manipulator.h" />
+    <ClInclude Include="vendor\dxr\nv_helpers_dx12\Manipulator.h" />
     <ClInclude Include="vendor\dxr\DXRHelper.h" />
     <ClInclude Include="vendor\dxr\nv_helpers_dx12\BottomLevelASGenerator.h" />
     <ClInclude Include="vendor\dxr\nv_helpers_dx12\RaytracingPipelineGenerator.h" />
@@ -283,7 +283,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="manipulator.cpp" />
+    <ClCompile Include="vendor\dxr\nv_helpers_dx12\Manipulator.cpp" />
     <ClCompile Include="vendor\dxr\nv_helpers_dx12\BottomLevelASGenerator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>

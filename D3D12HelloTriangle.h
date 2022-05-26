@@ -16,8 +16,8 @@
 #include <dxcapi.h>
 #include <vector>
 
-#include "vendor/dxr/nv_helpers_dx12/TopLevelASGenerator.h"
-#include "vendor/dxr/nv_helpers_dx12/ShaderBindingTableGenerator.h"
+#include <dxr/nv_helpers_dx12/TopLevelASGenerator.h>
+#include <dxr/nv_helpers_dx12/ShaderBindingTableGenerator.h>
 
 using namespace DirectX;
 

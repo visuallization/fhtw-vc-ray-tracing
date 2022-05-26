@@ -3,7 +3,7 @@
  ******************************************************************************/
 #include "stdafx.h"
 
-#include "manipulator.h"
+#include "Manipulator.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
