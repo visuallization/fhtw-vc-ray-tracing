@@ -542,8 +542,14 @@ void D3D12HelloTriangle::CreateAccelerationStructures()
 { 
 	// Build the bottom AS from the Triangle vertex buffer
 	AccelerationStructureBuffers bottomLevelBuffers = CreateBottomLevelAS({{m_vertexBuffer.Get(), 3}});
-	// Just one instance for now
-	m_instances = {{bottomLevelBuffers.pResult, XMMatrixIdentity()}}; CreateTopLevelAS(m_instances);
+	// 3 instances of the triangle
+	m_instances = {
+		{bottomLevelBuffers.pResult, XMMatrixIdentity()},
+		{bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
+		{bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)}
+	};
+
+	CreateTopLevelAS(m_instances);
 	// Flush the command list and wait for it to finish
 	m_commandList->Close();
 	ID3D12CommandList *ppCommandLists[] = {m_commandList.Get()}; m_commandQueue->ExecuteCommandLists(1, ppCommandLists);
