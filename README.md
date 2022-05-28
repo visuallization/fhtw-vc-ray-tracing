@@ -28,3 +28,8 @@ I downloaded the missing dlls from here:
 Then I copied the `dxcompiller.dll` and `dxil.dll` into the solutions `Debug` (\HelloTriangle\bin\x64\Debug) and `Release` (HelloTriangle\bin\x64\Release) folder.
 
 This should make sure that your program runs without any dll related errors
+
+## Troubleshooting
+
+If you get some memory access errors they might be (but not necessarily) related to missing or wrong versions of visual studio tools.
+In the "Visual Studio Installer" install the packages "Universal Windows Platform Development", "Desktopdevelopment C++" and "Windows SDK Version 10.0.18362" and see if it fixes the issues if you restart the project and select the corresponding sdk version. (Shoutout to Marius for reporting and finding the solution to this issue! 🥳)
