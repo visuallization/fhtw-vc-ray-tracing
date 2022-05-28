@@ -600,7 +600,7 @@ void D3D12HelloTriangle::CreateAccelerationStructures()
 
 	// 3 instances of the triangle + a plane
 	m_instances = {
-		{bottomLevelBuffers.pResult, XMMatrixIdentity()},
+		{bottomLevelBuffers.pResult, XMMatrixTranslation(0, 1.5f, 0)},
 		//{bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)},
 		//{bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
 		{cubeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)},

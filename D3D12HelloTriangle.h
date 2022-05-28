@@ -81,7 +81,7 @@ private:
 	ComPtr<ID3D12Fence> m_fence;
 	UINT64 m_fenceValue;
 
-	bool m_raster = true;
+	bool m_raster = false;
 
 	ComPtr<ID3D12Resource> m_bottomLevelAS; // Storage for the bottom Level AS
 	nv_helpers_dx12::TopLevelASGenerator m_topLevelASGenerator;
