@@ -315,6 +315,7 @@ void D3D12HelloTriangle::CreateRaytracingOutputBuffer() {
     ThrowIfFailed(m_device->CreateCommittedResource( &nv_helpers_dx12::kDefaultHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&m_outputResource)));
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## CreateShaderResourceHeap
 The data accessible to all shaders is typically referenced in a heap bound before rendering. This
 heap contains a predefined number of slots, each of them containing a view on an object in GPU memory.
@@ -352,6 +353,7 @@ void D3D12HelloTriangle::CreateShaderResourceHeap() {
     m_device->CreateShaderResourceView(nullptr, &srvDesc, srvHandle);
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## OnInit
 Add the creation of the raytracing output buffer and the resource heap at the end of `OnInit`:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
@@ -510,6 +512,7 @@ void D3D12HelloTriangle::CreateShaderBindingTable() {
     // The pointer to the beginning of the heap is the only parameter required by 
     // shaders without root parameters 
     D3D12_GPU_DESCRIPTOR_HANDLE srvUavHeapHandle = m_srvUavHeap->GetGPUDescriptorHandleForHeapStart();
+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The `ptr` member of the GPU handle on the heap memory has a `UINT64` type, even though it represents
 a pointer. Since the helper class only takes pointers to define shader resources, we need to cast the
@@ -563,8 +566,8 @@ the program identifier followed by its set of resource pointers.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C 
 // Compile the SBT from the shader and parameters info 
 m_sbtHelper.Generate(m_sbtStorage.Get(), m_rtStateObjectProps.Get());
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## OnInit()
 Add the following line to call the creation of the SBT.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
