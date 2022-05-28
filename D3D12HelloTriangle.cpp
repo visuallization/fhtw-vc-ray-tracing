@@ -257,58 +257,10 @@ void D3D12HelloTriangle::LoadAssets()
 
 	// Create the vertex buffer.
 	{
-		// Define the geometry for a tetrahedron.
-		Vertex triangleVertices[] = {
-			{{std::sqrtf(8.f / 9.f), 0.f, -1.f / 3.f}, {1.f, 0.f, 0.f, 1.f}},
-			{{-std::sqrtf(2.f / 9.f), std::sqrtf(2.f / 3.f), -1.f / 3.f}, {0.f, 1.f, 0.f, 1.f}},
-			{{-std::sqrtf(2.f / 9.f), -std::sqrtf(2.f / 3.f), -1.f / 3.f}, {0.f, 0.f, 1.f, 1.f}},
-			{{0.f, 0.f, 1.f}, {1, 0, 1, 1}}
-		};
+		// Create Tetrahoid Buffer
+		CreateTetrahoidVB();
 
-
-		const UINT vertexBufferSize = sizeof(triangleVertices);
-
-		// Note: using upload heaps to transfer static data like vert buffers is not 
-		// recommended. Every time the GPU needs it, the upload heap will be marshalled 
-		// over. Please read up on Default Heap usage. An upload heap is used here for 
-		// code simplicity and because there are very few verts to actually transfer.
-		ThrowIfFailed(m_device->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_vertexBuffer)));
-
-		// Copy the triangle data to the vertex buffer.
-		UINT8* pVertexDataBegin;
-		CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
-		ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-		m_vertexBuffer->Unmap(0, nullptr);
-
-		// Initialize the vertex buffer view.
-		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-		m_vertexBufferView.StrideInBytes = sizeof(Vertex);
-		m_vertexBufferView.SizeInBytes = vertexBufferSize;
-
-		// Indices
-		std::vector<UINT> indices = { 0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2 };
-		const UINT indexBufferSize = static_cast<UINT>(indices.size()) * sizeof(UINT);
-		CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
-		ThrowIfFailed(m_device->CreateCommittedResource(&heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_indexBuffer)));
-		// Copy the triangle data to the index buffer.
-		UINT8* pIndexDataBegin;
-		ThrowIfFailed(m_indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
-		memcpy(pIndexDataBegin, indices.data(), indexBufferSize);
-		m_indexBuffer->Unmap(0, nullptr);
-		// Initialize the index buffer view.
-		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-		m_indexBufferView.SizeInBytes = indexBufferSize;
-
-		// Create a vertex buffer for a ground plane, similarly to the triangle definition above
+		// Create Plane Buffer
 		CreatePlaneVB();
 
 		// Create Cube Buffer
@@ -404,7 +356,7 @@ void D3D12HelloTriangle::PopulateCommandList()
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+		m_commandList->IASetVertexBuffers(0, 1, &m_tetrahoidBufferView);
 		m_commandList->IASetIndexBuffer(&m_indexBufferView);
 		m_commandList->DrawIndexedInstanced(12, 1, 0, 0, 0);
 
@@ -561,8 +513,9 @@ AccelerationStructureBuffers D3D12HelloTriangle::CreateBottomLevelAS(std::vector
 void D3D12HelloTriangle::CreateTopLevelAS(const std::vector<std::pair<ComPtr<ID3D12Resource>, DirectX::XMMATRIX>>& instances) 
 { 
 	// Gather all the instances into the builder helper
-	for (size_t i = 0; i < instances.size(); i++) {
-		m_topLevelASGenerator.AddInstance(instances[i].first.Get(), instances[i].second, static_cast<UINT>(i), static_cast<UINT>(i));
+	for (size_t i = 0; i < instances.size(); i++)
+	{
+		m_topLevelASGenerator.AddInstance(instances[i].first.Get(), instances[i].second, static_cast<UINT>(i), static_cast<UINT>(2 * i) /*2 hit groups per instance*/);
 	}
 	// As for the bottom-level AS, the building the AS requires some scratch space
 	// to store temporary data in addition to the actual AS. In the case of the
@@ -592,7 +545,7 @@ void D3D12HelloTriangle::CreateTopLevelAS(const std::vector<std::pair<ComPtr<ID3
 void D3D12HelloTriangle::CreateAccelerationStructures()
 {
 	// Build the bottom AS from the Triangle vertex buffer
-	AccelerationStructureBuffers bottomLevelBuffers = CreateBottomLevelAS({{m_vertexBuffer.Get(), 4}}, {{m_indexBuffer.Get(), 12}});
+	AccelerationStructureBuffers bottomLevelBuffers = CreateBottomLevelAS({{m_tetrahoidBuffer.Get(), 4}}, {{m_indexBuffer.Get(), 12}});
 	// Build the bottom AS from the Cube vertex buffer
 	AccelerationStructureBuffers cubeBottomLevelBuffers = CreateBottomLevelAS({ {m_CubeBuffer.Get(), 6 * 6} });
 	// Build the bottom AS from the Plane vertex buffer
@@ -600,7 +553,7 @@ void D3D12HelloTriangle::CreateAccelerationStructures()
 
 	// 3 instances of the triangle + a plane
 	m_instances = {
-		{bottomLevelBuffers.pResult, XMMatrixTranslation(0, 1.5f, 0)},
+		{bottomLevelBuffers.pResult, XMMatrixIdentity()},
 		//{bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)},
 		//{bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
 		{cubeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)},
@@ -646,7 +599,7 @@ ComPtr<ID3D12RootSignature> D3D12HelloTriangle::CreateHitSignature() {
 	// HLSL as register(b0)
 	rsc.AddRootParameter(D3D12_ROOT_PARAMETER_TYPE_SRV, 0 /*t0*/); // vertices and colors
 	rsc.AddRootParameter(D3D12_ROOT_PARAMETER_TYPE_SRV, 1 /*t1*/); // indices
-
+	rsc.AddHeapRangesParameter({ { 2 /*t2*/, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1 /*2nd slot of the heap*/ } });
 	return rsc.Generate(m_device.Get(), true);
 }
 
@@ -671,6 +624,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	m_rayGenLibrary = nv_helpers_dx12::CompileShaderLibrary(L"res/shaders/RayGen.hlsl");
 	m_missLibrary = nv_helpers_dx12::CompileShaderLibrary(L"res/shaders/Miss.hlsl");
 	m_hitLibrary = nv_helpers_dx12::CompileShaderLibrary(L"res/shaders/Hit.hlsl");
+	m_shadowLibrary = nv_helpers_dx12::CompileShaderLibrary(L"res/shaders/ShadowRay.hlsl");
 
 	// In a way similar to DLLs, each library is associated with a number of 
 	// exported symbols. This 
@@ -679,13 +633,15 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// using the [shader("xxx")] syntax 
 	pipeline.AddLibrary(m_rayGenLibrary.Get(), {L"RayGen"});
 	pipeline.AddLibrary(m_missLibrary.Get(), {L"Miss"});
-	pipeline.AddLibrary(m_hitLibrary.Get(), { L"ClosestHit", L"CubeClosestHit", L"PlaneClosestHit"});
+	pipeline.AddLibrary(m_hitLibrary.Get(), { L"ClosestHit", L"CubeClosestHit", L"PlaneClosestHit" });
+	pipeline.AddLibrary(m_shadowLibrary.Get(), { L"ShadowClosestHit", L"ShadowMiss" });
 
 	// To be used, each DX12 shader needs a root signature defining which
 	// parameters and buffers will be accessed.
 	m_rayGenSignature = CreateRayGenSignature();
 	m_missSignature = CreateMissSignature();
 	m_hitSignature = CreateHitSignature();
+	m_shadowSignature = CreateHitSignature();
 
 	// 3 different shaders can be invoked to obtain an intersection: an 
 	// intersection shader is called 
@@ -705,6 +661,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	pipeline.AddHitGroup(L"HitGroup", L"ClosestHit");
 	pipeline.AddHitGroup(L"CubeHitGroup", L"CubeClosestHit");
 	pipeline.AddHitGroup(L"PlaneHitGroup", L"PlaneClosestHit");
+	pipeline.AddHitGroup(L"ShadowHitGroup", L"ShadowClosestHit");
 
 	// The following section associates the root signature to each shader. Note 
 	// that we can explicitly show that some shaders share the same root signature 
@@ -712,7 +669,8 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// to as hit groups, meaning that the underlying intersection, any-hit and 
 	// closest-hit shaders share the same root signature. 
 	pipeline.AddRootSignatureAssociation(m_rayGenSignature.Get(), {L"RayGen"}); 
-	pipeline.AddRootSignatureAssociation(m_missSignature.Get(), {L"Miss"}); 
+	pipeline.AddRootSignatureAssociation(m_shadowSignature.Get(), { L"ShadowHitGroup" });
+	pipeline.AddRootSignatureAssociation(m_missSignature.Get(), { L"Miss", L"ShadowMiss" });
 	pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), { L"HitGroup", L"CubeHitGroup", L"PlaneHitGroup", });
 
 	// The payload size defines the maximum size of the data carried by the rays, 
@@ -733,7 +691,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// then requires a trace depth of 1. Note that this recursion depth should be 
 	// kept to a minimum for best performance. Path tracing algorithms can be 
 	// easily flattened into a simple loop in the ray generation. 
-	pipeline.SetMaxRecursionDepth(1);
+	pipeline.SetMaxRecursionDepth(2);
 
 	// Compile the pipeline for execution on the GPU 
 	m_rtStateObject = pipeline.Generate(); 
@@ -823,6 +781,7 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	// The miss and hit shaders do not access any external resources: instead they 
 	// communicate their results through the ray payload 
 	m_sbtHelper.AddMissProgram(L"Miss", {}); 
+	m_sbtHelper.AddMissProgram(L"ShadowMiss", {});
 
 	// We have 3 triangles, each of which needs to access its own constant buffer
 	// as a root parameter in its primary hit shader. The shadow hit only sets a
@@ -830,10 +789,22 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	//for (int i = 0; i < 3; ++i) {
 	//	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_perInstanceConstantBuffers[i]->GetGPUVirtualAddress()) });
 	//}
-	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_vertexBuffer->GetGPUVirtualAddress()), (void*)(m_indexBuffer->GetGPUVirtualAddress()) });
+	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_tetrahoidBuffer->GetGPUVirtualAddress()), (void*)(m_indexBuffer->GetGPUVirtualAddress()) });
+	//{
+	//	m_sbtHelper.AddHitGroup(
+	//		L"HitGroup",
+	//		{ (void*)(m_vertexBuffer->GetGPUVirtualAddress()),
+	//		 (void*)(m_indexBuffer->GetGPUVirtualAddress()),
+	//		 (void*)(m_perInstanceConstantBuffers[0]->GetGPUVirtualAddress()) });
+	//}
 	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
+	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
+	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
+
 	// The plane also uses a constant buffer for its vertex colors
-	m_sbtHelper.AddHitGroup(L"PlaneHitGroup", {});
+	//m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { heapPointer });
+	m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { (void*)(m_perInstanceConstantBuffers[0]->GetGPUVirtualAddress()), heapPointer });
+	m_sbtHelper.AddHitGroup(L"ShadowHitGroup", {});
 
 	// Compute the size of the SBT given the number of shadersand their 
 	// parameters 
@@ -922,6 +893,59 @@ void D3D12HelloTriangle::OnMouseMove(UINT8 wParam, UINT32 lParam)
 	inputs.shift = GetAsyncKeyState(VK_SHIFT);
 	inputs.alt = GetAsyncKeyState(VK_MENU);
 	CameraManip.mouseMove(-GET_X_LPARAM(lParam), -GET_Y_LPARAM(lParam), inputs);
+}
+
+void D3D12HelloTriangle::CreateTetrahoidVB() {
+	// Define the geometry for a tetrahedron.
+	Vertex tetrahoidVertices[] = {
+		{{std::sqrtf(8.f / 9.f), 0.f, -1.f / 3.f}, {1.f, 0.f, 0.f, 1.f}},
+		{{-std::sqrtf(2.f / 9.f), std::sqrtf(2.f / 3.f), -1.f / 3.f}, {0.f, 1.f, 0.f, 1.f}},
+		{{-std::sqrtf(2.f / 9.f), -std::sqrtf(2.f / 3.f), -1.f / 3.f}, {0.f, 0.f, 1.f, 1.f}},
+		{{0.f, 0.f, 1.f}, {1, 0, 1, 1}}
+	};
+
+
+	const UINT vertexBufferSize = sizeof(tetrahoidVertices);
+
+	// Note: using upload heaps to transfer static data like vert buffers is not 
+	// recommended. Every time the GPU needs it, the upload heap will be marshalled 
+	// over. Please read up on Default Heap usage. An upload heap is used here for 
+	// code simplicity and because there are very few verts to actually transfer.
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&m_tetrahoidBuffer)));
+
+	// Copy the triangle data to the vertex buffer.
+	UINT8* pVertexDataBegin;
+	CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
+	ThrowIfFailed(m_tetrahoidBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+	memcpy(pVertexDataBegin, tetrahoidVertices, sizeof(tetrahoidVertices));
+	m_tetrahoidBuffer->Unmap(0, nullptr);
+
+	// Initialize the vertex buffer view.
+	m_tetrahoidBufferView.BufferLocation = m_tetrahoidBuffer->GetGPUVirtualAddress();
+	m_tetrahoidBufferView.StrideInBytes = sizeof(Vertex);
+	m_tetrahoidBufferView.SizeInBytes = vertexBufferSize;
+
+	// Indices
+	std::vector<UINT> indices = { 0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2 };
+	const UINT indexBufferSize = static_cast<UINT>(indices.size()) * sizeof(UINT);
+	CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
+	ThrowIfFailed(m_device->CreateCommittedResource(&heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_indexBuffer)));
+	// Copy the triangle data to the index buffer.
+	UINT8* pIndexDataBegin;
+	ThrowIfFailed(m_indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
+	memcpy(pIndexDataBegin, indices.data(), indexBufferSize);
+	m_indexBuffer->Unmap(0, nullptr);
+	// Initialize the index buffer view.
+	m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+	m_indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_indexBufferView.SizeInBytes = indexBufferSize;
 }
 
 void D3D12HelloTriangle::CreatePlaneVB() {
