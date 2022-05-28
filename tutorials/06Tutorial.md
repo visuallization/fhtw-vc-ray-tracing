@@ -1,9 +1,9 @@
 # DXR Tutorial Extra : Indexed Geometry
-Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1)
+Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](01Tutorial.md)
 The bases of this tutorial starts at the end of the previous one.
-You can download the entire project [here](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
+You can download the entire project [here](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
 The first tutorial only shows a triangle, which can feel a bit simplistic:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
 In this tutorial, we will convert the plane triangle to a three dimensional one, a tetrahedron.
 Do do this, we will convert the simple triangle to an indexed version of it.
 Add the new resources
@@ -50,7 +50,7 @@ m_commandList->IASetIndexBuffer(&m_indexBufferView);
 m_commandList->DrawIndexedInstanced(12, 1, 0, 0, 0);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The result image is not great an will be quite flat
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_flat.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_flat.png)
 
 ## CreateBottomLevelAS
 To see this geometry in the raytracing path, we need to improve the `CreateBottomLevelAS` method to support
@@ -82,7 +82,7 @@ The acceleration structure build calls also need to be updated to reflect the ne
 AccelerationStructureBuffers bottomLevelBuffers = CreateBottomLevelAS({{m_vertexBuffer.Get(), 4}}, {{m_indexBuffer.Get(), 12}});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 But the shading is not correct with the raytracer. This is because we are accessing invalid data in the Hit Shader.
-![Shading issue](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_issue.png width=400)
+![Shading issue](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_issue.png width=400)
 
 ## Hit Shader
 In the hit shader, we will need to access the indices
@@ -110,16 +110,16 @@ m_sbtHelper.AddHitGroup(L"HitGroup", {(void*)(m_vertexBuffer->GetGPUVirtualAddre
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Now the result in the raytracer is similar to the rasterizer. Note that if you have other hit groups attached to the same root signature,
 you would have to adjust their list of root parameters as well.
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_flat.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_flat.png)
 
 # Perspective & Depth & Plane
 An orthographic view and single geometry does not help seeing the geometry right.
 Follow the tutorials:
-* [Perspective](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective): Adding a camera perspective
-* [Instance Data](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_per_instance_data): Adding a plane
-* [Depth Buffer](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_depth_buffer): Adding the depth buffer to the raster
+* [Perspective](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective): Adding a camera perspective
+* [Instance Data](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_per_instance_data): Adding a plane
+* [Depth Buffer](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_depth_buffer): Adding the depth buffer to the raster
 This will give following result:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_3d.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_3d.png)
 
 # Menger Sponge fractal
 In the following part of the tutorial we will add some more complex geometry, using indexed vertex buffers. The geometry itself is a randomized variation of the Menger Sponge fractal.
@@ -242,5 +242,5 @@ We shouldn't forget to add the binding of the new instance in `CreateShaderBindi
 m_sbtHelper.AddHitGroup(L"HitGroup", {(void*)(m_mengerVB->GetGPUVirtualAddress()), (void*)(m_mengerIB->GetGPUVirtualAddress())});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The geometry is now visible in both rasterization and raytracing:
-![Raster](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaster.png)
-![Raytracing](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaytracing.png)
+![Raster](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaster.png)
+![Raytracing](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaytracing.png)

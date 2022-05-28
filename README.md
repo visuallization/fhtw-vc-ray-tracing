@@ -1,15 +1,15 @@
-# Raytrace A Triangle
+# DirectX Raytracing (DXR) Tutorial
 
 This repo is based on the raytracing tutorial by nvidia. You can find it here: [Part 1](https://developer.nvidia.com/rtx/raytracing/dxr/dx12-raytracing-tutorial-part-1) & [Part 2](https://developer.nvidia.com/rtx/raytracing/dxr/dx12-raytracing-tutorial-part-2)
 
-## Important (Read before continue)
+## Important (Read before you continue)
 
 Unfortunately the tutorial seems to be broken (missing code due to parsing issues on their website) but I tried my best to recreate their markdown.
 
-You can find the cleaned mark down files here: [Tutorial Part 1](01Tutorial.md) & [Tutorial Part 2](02Tutorial.md)
+You can find the cleaned mark down files in the [/tutorials](tutorials/) folder. To get started, go directly to [Tutorial Part 1](tutorials/01Tutorial.md) & [Tutorial Part 2](tutorials/02Tutorial.md).
+
 I did my best to clean the files and make sure the formating is correct, but there will be most probably still some errors.
-Also I havent't  updated the image urls in the markdown files, so they won't be displayed at the moment.
-If you find such an error or want update the image urls, feel free to fix it and create a pull request.
+If you find such an error feel free to fix it and create a pull request.
 
 Further more this tutorial will only work if you have an nvidia graphics card which supports raytracing.
 I added the following line in `Main.cpp` so that the programm will use the nvidia card per default

@@ -1,11 +1,11 @@
 # DXR Tutorial Extra : Depth Buffering
 !!! TIP The purpose of this tutorial is only to improve the rasterization pipeline to obtain rasterized images consistent with raytracing, and is not related to DXR.
-Welcome to the next section of the tutorial. If you missed the first tutorial, it is [here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1)
+Welcome to the next section of the tutorial. If you missed the first tutorial, it is [here](01Tutorial.md)
 The base of this tutorial starts at the end of the previous one.
-You can download the entire project [here](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
+You can download the entire project [here](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
 The first tutorial only shows a triangle, which where there is no need to eliminate hidden surfaces:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
-However, with more complex geometry such as the one you can add in [this tutorial](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_indexed_geometry), hidden surface
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
+However, with more complex geometry such as the one you can add in [this tutorial](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_indexed_geometry), hidden surface
 removal is mandatory. While raytracing inherently addresses this issue, rasterization requires setting a depth buffer to ensure
 only the closest surfaces are visible.
 We need to add a depth buffer, as well as a specific heap to reference it. Add the following declarations in the header file:
@@ -87,7 +87,7 @@ if (m_raster)
     // #DXR Extra: Depth Buffering 
     m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Using the simple triangle the resulting image should still be as the one on top of this tutorial. However, using the [more complex geometry](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_indexed_geometry)
-and a [perspective camera](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective), the rasterization and raytracing now both remove hidden surfaces:
-![Rasterized](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaster.png)
-![Raytraced](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaytracing.png)
+Using the simple triangle the resulting image should still be as the one on top of this tutorial. However, using the [more complex geometry](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_indexed_geometry)
+and a [perspective camera](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective), the rasterization and raytracing now both remove hidden surfaces:
+![Rasterized](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaster.png)
+![Raytraced](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaytracing.png)

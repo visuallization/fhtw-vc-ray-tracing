@@ -1,9 +1,9 @@
 # DXR Tutorial Extra : Perspective Camera
-Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1)
+Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](01Tutorial.md)
 The bases of this tutorial starts at the end of the previous one.
-You can download the entire project [here](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
+You can download the entire project [here](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
 At the end of the first tutorial, a triangle is visible using an orthographic camera:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
 In this tutorial we will extend this to a more natural perspective camera. To do this, the camera matrices need
 to be passed to the shaders through a the constant buffer `m_cameraBuffer`. For use in the rasterization pipeline we will also create
 the heap `m_constHeap` in which the camera buffer will be referenced.
@@ -183,7 +183,7 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The program should now run, showing this image in the rasterization mode:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/perspectiveRaster.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/perspectiveRaster.png)
 ## RayGen.hlsl
 The raytracing mode requires changes in the ray generation shader. For this we first add the declaration of the
 camera buffer. Here, we use all the available matrices:
@@ -210,12 +210,12 @@ float4 target = mul(projectionI, float4(d.x, -d.y, 1, 1));
 ray.Direction = mul(viewI, float4(target.xyz, 0));
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 And voila! The perspective camera is also available in raytracing mode:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/perspectiveRaytracing.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/perspectiveRaytracing.png)
 # Camera Manipulator
 It is also possible to easily add an interactive camera.
 For this, you will need a utility class `manipulator` which you can find under this [ZIP](Manipulator.zip) file.
 Copy the GLM folder and manipulator.[h|cpp] to the tutorial and add the manipulator to the project.
-![Figure [Fig]: The default camera manipulator](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/)
+![Figure [Fig]: The default camera manipulator](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/)
 ## DXSample
 In the file `DXSample.h`, add the following virtual functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,5 +1,5 @@
 # On to Rendering
-Welcome to Part 2 of the DXR ray tracing tutorial. [Part 1](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1) showed you how to set up your Windows 10 programming
+Welcome to Part 2 of the DXR ray tracing tutorial. [Part 1](01Tutorial.md) showed you how to set up your Windows 10 programming
 environment to support writing DXR ray tracing applications. Now we take the sample application used in Part 1 to add
 ray tracing.
 # Shading Pipeline
@@ -22,13 +22,13 @@ Two more shader types can optionally be used:
 * 1-u-v/ v0 v2 \ v *
 * '-----------' *
 **********************
-* The any hit shader is executed on each potential intersection: when searching for the hit point closest to the ray origin, several candidates may be found on the way. The any hit shader can typically be used to efficiently implement alpha-testing. If the alpha test fails, the ray traversal can continue without having to call `TraceRay()` again. The built-in any hit shader is simply a pass-trough returning the intersection to the traversal engine that will determine which potential intersection is the closest. ![Figure [step]: The Raytracing Pipeline](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/ShaderPipeline.svg)
+* The any hit shader is executed on each potential intersection: when searching for the hit point closest to the ray origin, several candidates may be found on the way. The any hit shader can typically be used to efficiently implement alpha-testing. If the alpha test fails, the ray traversal can continue without having to call `TraceRay()` again. The built-in any hit shader is simply a pass-trough returning the intersection to the traversal engine that will determine which potential intersection is the closest. ![Figure [step]: The Raytracing Pipeline](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/ShaderPipeline.svg)
 In this tutorial we will create a pipeline containing only the 3 mandatory shader programs: a single ray generation, single miss and a single closest
 hit. This is done by first compiling each shader program into a DirectX Intermediate Language (DXIL) library using the DirectX Compiler
 `IDxcCompiler` with the target `lib_6_3`. This target has been introduced with DXR. Such libraries will be linked
 together within the raytracing pipeline, which will be able to route the intersection calculations to the right hit shaders.
 To be able to focus on the pipeline generation, we provide simplistic shaders:
-!!! Note: Shaders ([Download](/rtx/raytracing/dxr/tutorial/Files/Shaders.zip)) Download the shaders and extract the content to the main folder.
+!!! Note: Shaders ([Download](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/Shaders.zip)) Download the shaders and extract the content to the main folder.
 !!! Tip: Adding to the Solution If you are adding the shaders to the solution, you need to exclude them from compilation otherwise you will get compilation errors.
 This archive contains 4 files:
 * `Common.hlsl` is included by the other shaders, and defines the ray payload `HitInfo` which will be used to communicate information between shaders. It only contains a `float4` vector representing the color at the hit point and the distance from the ray origin to that hit point. This file also declares the structure `Attributes` which will be used to store the `float2` barycentric coordinates returned by the intersection shader.
@@ -89,7 +89,7 @@ raytracing pipeline and the root signatures.
 ## CreateRayGenSignature
 The root signature of the RayGen program indicates the program needs to access the image output and the buffer
 containing the Top Level Acceleration Structure. For the sake of simplicity the root signatures introduced
-in this tutorial use our `RootSignatureGenerator` [helper](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers). The `Add*` methods
+in this tutorial use our `RootSignatureGenerator` [helper](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers). The `Add*` methods
 essentially create `D3D12_ROOT_PARAMETER` descriptors for each entry, while the `Generate` call combine the
 descriptors into a `D3D12_ROOT_SIGNATURE_DESC`, itself used to call `D3D12SerializeRootSignature` and
 `ID3D12Device::CreateRootSignature`.
@@ -138,7 +138,7 @@ The raytracing pipeline binds the shader code, root signatures and pipeline
 characteristics in a single structure used by DXR to invoke the shaders and
 manage temporary memory during raytracing. The setup of the pipeline requires
 creating and combining numerous DirectX 12 subobjects, a concept introduced with DXR. In this tutorial we use the
-`RayTracingPipeline` [helper](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) to simplify the code
+`RayTracingPipeline` [helper](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) to simplify the code
 and enforce consistency across the created objects. Internally, each `Add*` method
 corresponds to one or more `D3D12_STATE_SUBOBJECT` added to an array of such subobjects defining the pipeline.
 We start the method by generating the DXIL libraries for each shader. This helper function first opens the
@@ -382,7 +382,7 @@ In `D3D12HelloTriangle.h` add the following include
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include "nv_helpers_dx12/ShaderBindingTableGenerator.h"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This file contains our SBT [helper](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) that eases the SBT creation process and enforces consistency between
+This file contains our SBT [helper](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) that eases the SBT creation process and enforces consistency between
 the SBT layout and the later raytracing calls. Internally the `Add*` methods collect the names of the shader programs associated with the pointers of
 their input resources in GPU memory. The `Generate` call maps the input buffer and, for each collected entry, sets the corresponding shader
 identifier using `ID3D12StateObjectProperties::GetShaderIdentifier()` and copies its resource pointers afterwards. The helper first copies
@@ -695,7 +695,7 @@ ray generation shader for each pixel of the image. Since that ray generation sha
 the raytracing output buffer, the result should look like this:
 Raster | | Raytrace
 :-----------------------------:|:---:|:--------------------------------:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/05_ht.png width="350px") | <-> | ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/FirstRaytraceCall.png width="350px")
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/05_ht.png width="350px") | <-> | ![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/FirstRaytraceCall.png width="350px")
 [Figure [step]: Alternating between rasterization and raytracing using the spacebar]
 !!! Tip Open RayGen.hlsl and change the value of the return.
 # Simple RayGen and Hit shader
@@ -810,7 +810,7 @@ gOutput[launchIndex] = float4(payload.colorAndDistance.rgb, 1.f);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The closest hit and miss shaders are still
 the original ones returning a solid color:
-![Figure [step]: Yellow: Hit shader, Blue: Miss shader](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/RayGen1.png width="350px")
+![Figure [step]: Yellow: Hit shader, Blue: Miss shader](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/RayGen1.png width="350px")
 ## Hit Shader
 We can also change the the `ClosestHit()` function of `Hit.hlsl` to interpolate colors across the triangle similarly to the
 rasterizer.
@@ -825,7 +825,7 @@ const float3 C = float3(0, 0, 1);
 float3 hitColor = A * barycentrics.x + B * barycentrics.y + C * barycentrics.z; 
 payload.colorAndDistance = float4(hitColor, RayTCurrent());
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![Figure [step]: Color interpolation using barycentrics](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/Hit1.png width="350px")
+![Figure [step]: Color interpolation using barycentrics](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/Hit1.png width="350px")
 ## Miss Shader
 To slightly differentiate the raster and the raytracing, we will add a simple ramp color background by
 modifying the `Miss` function: we simply obtain the
@@ -836,7 +836,7 @@ float2 dims = float2(DispatchRaysDimensions().xy);
 float ramp = launchIndex.y / dims.y;
 payload.colorAndDistance = float4(0.0f, 0.2f, 0.7f - 0.3f*ramp, -1.0f);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/Miss1.png width="350px")
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/Miss1.png width="350px")
 
 !!! Tip: Experimentation You can modify the values in the Miss shader to see the background changing. If you modify the code in the Hit shader, you can change how the triangle is rendered.
 # Using the Vertex Buffer
@@ -890,25 +890,25 @@ Vertex triangleVertices[] =
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Raster | | Ray-trace
 :-----------------------------:|:---:|:--------------------------------:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/RasterFinal.png width="350px") | <-> | ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/SRV1.png width="350px")
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/RasterFinal.png width="350px") | <-> | ![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/SRV1.png width="350px")
 [Figure [step]: After spacebar]
-!!! Note: Final Version ([Download](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)) You can grab the final version of the tutorial.
+!!! Note: Final Version ([Download](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)) You can grab the final version of the tutorial.
 Going Further
 ==============
 Congratulations, you can now raytrace a triangle using DXR! From that basis, we can build upon it to achieve more advanced effects:
-- [Per Instance Data](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_per_instance_data): adding more geometry in the scene through instancing and using constant to be used by the Hit program to introduce some per-instance variations
-- [Perspective Camera](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective): adding perspective camera to provide a better view with both rasterization and raytracing.
-- [Depth Buffer](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_depth_buffer): setting a depth buffer to ensure only the closest surfaces are visible in rasterization.
-- [Indexed Geometry](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_indexed_geometry): add some more complex geometry, using indexed vertex buffers. The geometry itself is a randomized variation of the Menger Sponge fractal.
-- [Shadows](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_another_ray_type): adding a secondary ray type to be used to trace shadow rays from the hit points shadows.
-- [Animation](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_refit): animating the scene by refitting the top-level acceleration structure on-the-fly.
-!!! Note: Tutorial Extra ([Download](/rtx/raytracing/dxr/tutorial/Files/DXRTutorial_Extra.zip)) This is a modification of the tutorial containing an example of all of the above, including some GUI from [imgui](https://github.com/ocornut/imgui).
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/tutorial-2.jpg)
+- [Per Instance Data](04Tutorial.md): adding more geometry in the scene through instancing and using constant to be used by the Hit program to introduce some per-instance variations
+- [Perspective Camera](03Tutorial.md): adding perspective camera to provide a better view with both rasterization and raytracing.
+- [Depth Buffer](05Tutorial.md): setting a depth buffer to ensure only the closest surfaces are visible in rasterization.
+- [Indexed Geometry](06Tutorial.md): add some more complex geometry, using indexed vertex buffers. The geometry itself is a randomized variation of the Menger Sponge fractal.
+- [Shadows](07Tutorial.md): adding a secondary ray type to be used to trace shadow rays from the hit points shadows.
+- [Animation](08Tutorial.md): animating the scene by refitting the top-level acceleration structure on-the-fly.
+!!! Note: Tutorial Extra ([Download](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/DXRTutorial_Extra.zip)) This is a modification of the tutorial containing an example of all of the above, including some GUI from [imgui](https://github.com/ocornut/imgui).
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/tutorial-2.jpg)
 And Even Further!
 ==============
 The extras above got us through the main parts required to explore raytracing in our simple application. From that base, we can start adding more
 capabilities:
-- [Simple Lighting](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra2_simple_lighting): Compute normals and add diffuse shading from a point light source
+- [Simple Lighting](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra2_simple_lighting): Compute normals and add diffuse shading from a point light source
 - (More to come...)
 References
 ==========

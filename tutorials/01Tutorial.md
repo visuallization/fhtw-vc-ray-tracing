@@ -27,17 +27,17 @@ At any time you can go to the References section, providing external links to mo
 # Starting point: Hello Triangle
 There are many samples for DirectX 12 under [Microsoft GitHub](https://github.com/Microsoft/DirectX-Graphics-Samples),
 but for this example, you only need HelloTriangle.
-!!! Note: HelloTriangle ([Download](/rtx/raytracing/dxr/tutorial/Files/HelloTriangle.zip)) Download the HelloTriangle Zip
+!!! Note: HelloTriangle ([Download](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/HelloTriangle.zip)) Download the HelloTriangle Zip
 1. Make sure that you have the latest [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) installed
 1. Open the solution, build and run.
-![Figure [step]: The result of the HelloTriangle from Microsoft](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/01_hello_triangle.png width="350px")
+![Figure [step]: The result of the HelloTriangle from Microsoft](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/01_hello_triangle.png width="350px")
 !!! Warning: Errors on compilation If you have a compilation issue, check that you have the latest [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) installed. Right-Click the solution and select "Retarget solution" to the latest SDK.
 # DXR Utilities
 In the following tutorial, we will use some utility functions that are abstracting some really verbose
-implementation. The implementation of those abstractions, [available here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers), is fully documented and should help clarifying the concepts of DXR.
-!!! Note: DXR Helpers ([Download](/rtx/raytracing/dxr/tutorial/Files/DXRHelpers.zip)) Download the utility classes and copy to the project directory.
+implementation. The implementation of those abstractions, [available here](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers), is fully documented and should help clarifying the concepts of DXR.
+!!! Note: DXR Helpers ([Download](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/DXRHelpers.zip)) Download the utility classes and copy to the project directory.
 1. Add the utility files to the solution
-1. Select all `.cpp` and set the precompile flag to `Not Using Precompiled Headers` ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/precompiledHeaders.png)
+1. Select all `.cpp` and set the precompile flag to `Not Using Precompiled Headers` ![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/precompiledHeaders.png)
 1. Add `$(ProjectDir)` to the project include `C/C++> General> Additional Include Directories`
 !!! Tip After each step, you should be able to run the sample. At this point, nothing visual has changed.
 # Enabling Raytracing Capabilities
@@ -136,7 +136,7 @@ If everything went well, you should be able to compile, run and when pressing th
 We are not doing any raytracing yet, but this will be our starting point.
 Raster | | Ray-trace
 :-----------------------------:|:---:|:--------------------------------:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/05_ht.png width="350px") | <-> | ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/05_1_ht.png width="350px")
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/05_ht.png width="350px") | <-> | ![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/05_1_ht.png width="350px")
 [Figure [step]: After spacebar]
 # Overview of the System
 Raytracing using DXR requires 3 main building blocks. The acceleration structures store the geometric information
@@ -145,8 +145,8 @@ to optimize the search for ray intersection points, and are separated into the b
 shader program, as well as a description of how those shaders exchange data. Finally, the shader binding table
 is linking all of those pieces together by indicating which shader programs are executed for which geometry, and
 which resources are associated with it.
-![Figure [step]: Overview of raytracing building blocks](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/DXROverview.svg)
-To facilitate the first contact with DXR, the [helper classes](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) we added previously
+![Figure [step]: Overview of raytracing building blocks](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/DXROverview.svg)
+To facilitate the first contact with DXR, the [helper classes](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) we added previously
 directly map to those main blocks.
 # Acceleration Structure
 To be efficient, raytracing requires putting the geometry in an acceleration structure (AS)
@@ -157,9 +157,9 @@ transform matrix for each bottom-level AS objects. Those BLAS then hold the actu
 For each BLAS, the top-level AS that will contain the object instances, each one
 with its own transformation matrix. We will start with a single bottom-level AS containing
 the vertices of the triangle and a top-level AS instancing it once with an identity transform.
-![Figure [step]: Acceleration Structure](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/AccelerationStructure.svg)
+![Figure [step]: Acceleration Structure](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Images/AccelerationStructure.svg)
 In `D3D12HelloTriangle.h`, add those includes to access the API of the DirectX compiler, the top-level acceleration
-structure [helper](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers), and the standard vectors.
+structure [helper](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers), and the standard vectors.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
 #include <dxcapi.h>#include <vector>
 #include "nv_helpers_dx12/TopLevelASGenerator.h"
@@ -222,7 +222,7 @@ The first element is the pointer to the resource holding the vertices of the geo
 number of vertices. Note that we are assuming that the resource contains `Vertex` structures. For the sake of simplicity,
 we do not use indexing: triangles are described by 'Vertex' triplets. Indexing is supported by the helper class, though, please see
 the Going Further section for the details.
-The function `CreateBottomLevelAS` is divided into 3 main steps. First , it combines all the vertex buffers into the BLAS builder [helper](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) class. The BLAS generation is performed
+The function `CreateBottomLevelAS` is divided into 3 main steps. First , it combines all the vertex buffers into the BLAS builder [helper](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/dxr_tutorial_helpers) class. The BLAS generation is performed
 on GPU, and the second step computes the storage requirements to hold the final BLAS as well as some temporary space by calling `ComputeASBufferSizes`.
 This maps to the actual DXR API, which requires the application
 to allocate the space for the BLAS as well as the temporary (scratch) space. This scratch space can be freed as soon as the

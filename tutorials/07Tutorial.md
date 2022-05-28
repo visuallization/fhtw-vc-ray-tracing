@@ -1,11 +1,11 @@
 # DXR Tutorial Extra : Another Ray Type
-Welcome to the next section of the tutorial. If you missed the first tutorial, it is [here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1)
+Welcome to the next section of the tutorial. If you missed the first tutorial, it is [here](01Tutorial.md)
 The base of this tutorial starts at the end of the previous one.
-You can download the entire project [here](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
+You can download the entire project [here](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
 The first tutorial only shows a triangle with a simple shader:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
 DXR allows using several ray types, typically to render different effects such as primary rays, which we have been doing in the
-previous tutorials, and shadow rays. Before starting this tutorial we first need to [add some more geometry](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_per_instance_data) to cast shadows on, and a [perspective camera](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective). Once done, the image should look like this: ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/PlaneClosestHit2.png)
+previous tutorials, and shadow rays. Before starting this tutorial we first need to [add some more geometry](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_per_instance_data) to cast shadows on, and a [perspective camera](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective). Once done, the image should look like this: ![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/PlaneClosestHit2.png)
 We first need to declare the new shader library for the shadow shaders, as well as its root signature at the end of the header:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C
 // #DXR Extra - Another ray type
@@ -214,6 +214,6 @@ for (size_t i = 0; i < instances.size(); i++)
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Running this program should now show shadows projected on the plane:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/triangleInstancePerspectiveShadowRaytracing.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/triangleInstancePerspectiveShadowRaytracing.png)
 This example introduces how to use several ray types with an application to simple shadows. A more efficient shadow ray implementation would only
 use a miss shader setting the payload to `false`, and no closest hit shader. This modification is left as an exercise for the reader.

@@ -1,9 +1,9 @@
 # DXR Tutorial Extra : Refitting for Animated Scenes
-Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1)
+Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](01Tutorial.md)
 The bases of this tutorial starts at the end of the previous one.
-You can download the entire project [here](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
+You can download the entire project [here](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
 At the end of the first tutorial, a triangle is visible but remains fixed:
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/originalRender.png)
 In this tutorial we will consider adding movement in the scene. While this can be done straightforwardly by completely recomputing the acceleration structures, much faster updates can be performed by simply refitting those using the new vertex coordinates or instance transforms. For the sake of simplicity this document only considers updating instance matrices and the top-level acceleration structure, but the same approach can be used to update bottom-level AS as well.
 In the header file, we first need to modify the signature of `CreateTopLevelAS` to be able to indicate whether to do a full
 build or a simple update:
@@ -66,7 +66,7 @@ raytracing branch:
 CreateTopLevelAS(m_instances, true);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 That's all you need!
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/animatedTriangle.gif)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/animatedTriangle.gif)
 
 # Adding Animation to the Raster Mode
 For now the triangle is only animated in raytracing mode, but remains fixed in raster mode.
@@ -74,7 +74,7 @@ The way object transforms are handled with raytracing is very different from ras
 generated, but we need to transfer the transform matrix of the objects to the vertex shader, that will transform the positions before projecting
 them into camera space for rasterization.
 To do this, we will need to setup a heap, which references a buffer containing the matrices. The heap creation for raster is already covered
-in the [Perspective Camera](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective) extra, so the remainder of this section assumes the perspective camera has
+in the [Perspective Camera](https://developer.nvidia.com/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_perspective) extra, so the remainder of this section assumes the perspective camera has
 been setup. In looks nicer anyway!
 At the end of the header file, add the following class members to create and hold a buffer containing the matrices for each object in the scene.
 We store those matrices in a structure to allow more per-instance data to be passed in later chapters.

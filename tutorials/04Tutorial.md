@@ -1,7 +1,7 @@
 # DXR Tutorial Extra : Per Instance Data
-Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](/rtx/raytracing/dxr/DX12-Raytracing-tutorial-Part-1)
+Welcome to the next section of the tutorial. If you miss the first tutorial, it is [here](01Tutorial.md)
 The bases of this tutorial starts at the end of the previous one.
-You can download the entire project [here](/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
+You can download the entire project [here](https://developer.nvidia.com/rtx/raytracing/dxr/tutorial/Files/dxr_tutorial.zip)
 This tutorial covers the creation of object instances, each having its own shaders and resources. In order to see all the objects created
 in this tutorial, we strongly advise [adding a perspective camera](dxr_tutorial_extra_perspective).
 We will create more instances of the triangle, each of which uses its own vertex colors provided by constant buffers. We also create a plane,
@@ -24,7 +24,7 @@ m_instances = {
 
 CreateTopLevelAS(m_instances);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3Triangles.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3Triangles.png)
 
 ## Hit.hlsl
 In the Hit program, DXR provides the built-in `InstanceID()` function, which returns the ID we have
@@ -46,7 +46,7 @@ case 2:
     break;
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3TrianglesId.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3TrianglesId.png)
 
 # Adding a Plane
 We also add the creation of the vertex buffer for the plane, along with the view on the buffer for rasterization:
@@ -133,7 +133,7 @@ m_commandList->IASetVertexBuffers(0, 1, &m_planeBufferView);
 m_commandList->DrawInstanced(6, 1, 0, 0);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! Warning This is enough to add the plane, but we cannot see it!<br/> Add a [perspective camera](dxr_tutorial_extra_perspective) to see it.
-![Adding a plane in raytracing mode](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3TrianglesPlane.png)
+![Adding a plane in raytracing mode](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/3TrianglesPlane.png)
 
 # Using a Constant Buffer
 Constant buffer are used to send read-only data from the CPU side to the shaders. Here we will create
@@ -224,7 +224,7 @@ if (InstanceID() < 3)
     hitColor = A[InstanceID()] * barycentrics.x + B[InstanceID()] * barycentrics.y + C[InstanceID()] * barycentrics.z;
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffer.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffer.png)
 ## Accessing memory differently
 In the previous section we replicated the structure of the constant buffer exactly in the HLSL code. However, the mapping from the original
 data to the shader is arbitrary. For example, we could map it as an array of structures.
@@ -248,7 +248,7 @@ For each instance, we can now access the data this way:
 int instanceID = InstanceID();
 float3 hitColor = Tint[instanceID].a * barycentrics.x + Tint[instanceID].b * barycentrics.y + Tint[instanceID].c * barycentrics.z;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffer2.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffer2.png)
 
 # Using Per-Instance Constant Buffer
 In most practical cases, the constant buffers are defined per-instance so that they can be managed independently.
@@ -342,7 +342,7 @@ The computation of the final color is then simplified by accessing the member of
 // #DXR Extra: Per-Instance Data
 float3 hitColor = A * barycentrics.x + B * barycentrics.y + C * barycentrics.z;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffers.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/constantbuffers.png)
 
 # Adding a Specific Hit Shader for the Plane
 Until now all the geometry used a single shader. In practice, a scene with different object type will most likely require as many different shaders.
@@ -388,4 +388,4 @@ we can leave its input resources empty.
 // Adding the plane
 m_sbtHelper.AddHitGroup(L"PlaneHitGroup", {});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/PlaneClosestHit.png)
+![](https://developer.nvidia.com/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/PlaneClosestHit.png)
