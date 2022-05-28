@@ -258,7 +258,7 @@ void D3D12HelloTriangle::LoadAssets()
 	// Create the vertex buffer.
 	{
 		// Create Tetrahoid Buffer
-		CreateTetrahoidVB();
+		//CreateTetrahoidVB();
 
 		// Create Plane Buffer
 		CreatePlaneVB();
@@ -356,9 +356,9 @@ void D3D12HelloTriangle::PopulateCommandList()
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		m_commandList->IASetVertexBuffers(0, 1, &m_tetrahoidBufferView);
-		m_commandList->IASetIndexBuffer(&m_indexBufferView);
-		m_commandList->DrawIndexedInstanced(12, 1, 0, 0, 0);
+		//m_commandList->IASetVertexBuffers(0, 1, &m_tetrahoidBufferView);
+		//m_commandList->IASetIndexBuffer(&m_indexBufferView);
+		//m_commandList->DrawIndexedInstanced(12, 1, 0, 0, 0);
 
 		m_commandList->IASetVertexBuffers(0, 1, &m_cubeBufferView);
 		m_commandList->DrawInstanced(6 * 6, 1, 0, 0);
@@ -545,7 +545,7 @@ void D3D12HelloTriangle::CreateTopLevelAS(const std::vector<std::pair<ComPtr<ID3
 void D3D12HelloTriangle::CreateAccelerationStructures()
 {
 	// Build the bottom AS from the Triangle vertex buffer
-	AccelerationStructureBuffers bottomLevelBuffers = CreateBottomLevelAS({{m_tetrahoidBuffer.Get(), 4}}, {{m_indexBuffer.Get(), 12}});
+	//AccelerationStructureBuffers tetrahoidBottomLevelBuffers = CreateBottomLevelAS({{m_tetrahoidBuffer.Get(), 4}}, {{m_indexBuffer.Get(), 12}});
 	// Build the bottom AS from the Cube vertex buffer
 	AccelerationStructureBuffers cubeBottomLevelBuffers = CreateBottomLevelAS({ {m_CubeBuffer.Get(), 6 * 6} });
 	// Build the bottom AS from the Plane vertex buffer
@@ -553,9 +553,9 @@ void D3D12HelloTriangle::CreateAccelerationStructures()
 
 	// 3 instances of the triangle + a plane
 	m_instances = {
-		{bottomLevelBuffers.pResult, XMMatrixIdentity()},
-		//{bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)},
-		//{bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
+		//{tetrahoidBottomLevelBuffers.pResult, XMMatrixIdentity()},
+		//{tetrahoidBottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)},
+		//{tetrahoidBottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
 		{cubeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)},
 		{planeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)}
 	};
@@ -572,7 +572,9 @@ void D3D12HelloTriangle::CreateAccelerationStructures()
 	ThrowIfFailed( m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()));
 	// Store the AS buffers. The rest of the buffers will be released once we exit
 	// the function
-	m_bottomLevelAS = bottomLevelBuffers.pResult;
+	//m_bottomLevelAS = tetrahoidBottomLevelBuffers.pResult;
+	m_bottomLevelAS = cubeBottomLevelBuffers.pResult;
+
 }
 
 // The ray generation shader needs to access 2 resources: the raytracing output
@@ -789,7 +791,7 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	//for (int i = 0; i < 3; ++i) {
 	//	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_perInstanceConstantBuffers[i]->GetGPUVirtualAddress()) });
 	//}
-	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_tetrahoidBuffer->GetGPUVirtualAddress()), (void*)(m_indexBuffer->GetGPUVirtualAddress()) });
+	//m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_tetrahoidBuffer->GetGPUVirtualAddress()), (void*)(m_indexBuffer->GetGPUVirtualAddress()) });
 	//{
 	//	m_sbtHelper.AddHitGroup(
 	//		L"HitGroup",
@@ -799,7 +801,7 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	//}
 	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
 	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
-	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
+	//m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
 
 	// The plane also uses a constant buffer for its vertex colors
 	//m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { heapPointer });
@@ -951,12 +953,12 @@ void D3D12HelloTriangle::CreateTetrahoidVB() {
 void D3D12HelloTriangle::CreatePlaneVB() {
 	// Define the geometry for a plane. 
 	Vertex planeVertices[] = {
-		{{-1.5f, -.8f, 01.5f}, {1.0f, 1.0f, 1.0f, 1.0f}}, // 0 
-		{{-1.5f, -.8f, -1.5f}, {1.0f, 1.0f, 1.0f, 1.0f}}, // 1 
-		{{01.5f, -.8f, 01.5f}, {1.0f, 1.0f, 1.0f, 1.0f}}, // 2 
-		{{01.5f, -.8f, 01.5f}, {1.0f, 1.0f, 1.0f, 1.0f}}, // 2 
-		{{-1.5f, -.8f, -1.5f}, {1.0f, 1.0f, 1.0f, 1.0f}}, // 1 
-		{{01.5f, -.8f, -1.5f}, {1.0f, 1.0f, 1.0f, 1.0f}} // 4 
+		{{-1.5f, -.8f, 01.5f}, {1.0f, 0.0f, 0.5f, 1.0f}}, // 0 
+		{{-1.5f, -.8f, -1.5f}, {1.0f, 0.0f, 0.5f, 1.0f}}, // 1 
+		{{01.5f, -.8f, 01.5f}, {1.0f, 0.0f, 0.5f, 1.0f}}, // 2 
+		{{01.5f, -.8f, 01.5f}, {1.0f, 0.0f, 0.5f, 1.0f}}, // 2 
+		{{-1.5f, -.8f, -1.5f}, {1.0f, 0.0f, 0.5f, 1.0f}}, // 1 
+		{{01.5f, -.8f, -1.5f}, {1.0f, 0.0f, 0.5f, 1.0f}} // 4 
 	};
 	const UINT planeBufferSize = sizeof(planeVertices);
 

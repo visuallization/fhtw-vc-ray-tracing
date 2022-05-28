@@ -38,7 +38,7 @@ void ClosestHit(inout HitInfo payload, Attributes attrib)
 void CubeClosestHit(inout HitInfo payload, Attributes attrib)
 {
     float3 barycentrics = float3(1.f - attrib.bary.x - attrib.bary.y, attrib.bary.x, attrib.bary.y);
-    float3 hitColor = float3(1, 1, 1);
+    float3 hitColor = float3(1, 0, 0.5);
     payload.colorAndDistance = float4(hitColor, RayTCurrent());
 }
 
@@ -106,6 +106,6 @@ void CubeClosestHit(inout HitInfo payload, Attributes attrib)
 
     float3 barycentrics =
         float3(1.f - attrib.bary.x - attrib.bary.y, attrib.bary.x, attrib.bary.y);
-    float4 hitColor = float4(float3(0.7, 0.7, 0.3) * factor, RayTCurrent());
+    float4 hitColor = float4(float3(0, 0.8, 0.9) * factor, RayTCurrent());
     payload.colorAndDistance = float4(hitColor);
 }
