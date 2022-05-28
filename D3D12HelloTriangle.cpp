@@ -310,6 +310,9 @@ void D3D12HelloTriangle::LoadAssets()
 
 		// Create a vertex buffer for a ground plane, similarly to the triangle definition above
 		CreatePlaneVB();
+
+		// Create Cube Buffer
+		CreateCubeVB();
 	}
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
@@ -404,6 +407,9 @@ void D3D12HelloTriangle::PopulateCommandList()
 		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 		m_commandList->IASetIndexBuffer(&m_indexBufferView);
 		m_commandList->DrawIndexedInstanced(12, 1, 0, 0, 0);
+
+		m_commandList->IASetVertexBuffers(0, 1, &m_cubeBufferView);
+		m_commandList->DrawInstanced(6 * 6, 1, 0, 0);
 
 		m_commandList->IASetVertexBuffers(0, 1, &m_planeBufferView);
 		m_commandList->DrawInstanced(6, 1, 0, 0);
@@ -587,13 +593,17 @@ void D3D12HelloTriangle::CreateAccelerationStructures()
 {
 	// Build the bottom AS from the Triangle vertex buffer
 	AccelerationStructureBuffers bottomLevelBuffers = CreateBottomLevelAS({{m_vertexBuffer.Get(), 4}}, {{m_indexBuffer.Get(), 12}});
+	// Build the bottom AS from the Cube vertex buffer
+	AccelerationStructureBuffers cubeBottomLevelBuffers = CreateBottomLevelAS({ {m_CubeBuffer.Get(), 6 * 6} });
 	// Build the bottom AS from the Plane vertex buffer
-	AccelerationStructureBuffers planeBottomLevelBuffers = CreateBottomLevelAS({ {m_planeBuffer.Get(), 6} });
+	AccelerationStructureBuffers planeBottomLevelBuffers = CreateBottomLevelAS({{m_planeBuffer.Get(), 6} });
+
 	// 3 instances of the triangle + a plane
 	m_instances = {
 		{bottomLevelBuffers.pResult, XMMatrixIdentity()},
 		//{bottomLevelBuffers.pResult, XMMatrixTranslation(.6f, 0, 0)},
 		//{bottomLevelBuffers.pResult, XMMatrixTranslation(-.6f, 0, 0)},
+		{cubeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)},
 		{planeBottomLevelBuffers.pResult, XMMatrixTranslation(0, 0, 0)}
 	};
 
@@ -669,7 +679,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// using the [shader("xxx")] syntax 
 	pipeline.AddLibrary(m_rayGenLibrary.Get(), {L"RayGen"});
 	pipeline.AddLibrary(m_missLibrary.Get(), {L"Miss"});
-	pipeline.AddLibrary(m_hitLibrary.Get(), { L"ClosestHit", L"PlaneClosestHit" });
+	pipeline.AddLibrary(m_hitLibrary.Get(), { L"ClosestHit", L"CubeClosestHit", L"PlaneClosestHit"});
 
 	// To be used, each DX12 shader needs a root signature defining which
 	// parameters and buffers will be accessed.
@@ -693,6 +703,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// Hit group for the triangles, with a shader simply interpolating vertex 
 	// colors
 	pipeline.AddHitGroup(L"HitGroup", L"ClosestHit");
+	pipeline.AddHitGroup(L"CubeHitGroup", L"CubeClosestHit");
 	pipeline.AddHitGroup(L"PlaneHitGroup", L"PlaneClosestHit");
 
 	// The following section associates the root signature to each shader. Note 
@@ -702,7 +713,7 @@ void D3D12HelloTriangle::CreateRaytracingPipeline()
 	// closest-hit shaders share the same root signature. 
 	pipeline.AddRootSignatureAssociation(m_rayGenSignature.Get(), {L"RayGen"}); 
 	pipeline.AddRootSignatureAssociation(m_missSignature.Get(), {L"Miss"}); 
-	pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), { L"HitGroup", L"PlaneHitGroup" });
+	pipeline.AddRootSignatureAssociation(m_hitSignature.Get(), { L"HitGroup", L"CubeHitGroup", L"PlaneHitGroup", });
 
 	// The payload size defines the maximum size of the data carried by the rays, 
 	// ie. the the data 
@@ -820,7 +831,7 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	//	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_perInstanceConstantBuffers[i]->GetGPUVirtualAddress()) });
 	//}
 	m_sbtHelper.AddHitGroup(L"HitGroup", { (void*)(m_vertexBuffer->GetGPUVirtualAddress()), (void*)(m_indexBuffer->GetGPUVirtualAddress()) });
-
+	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
 	// The plane also uses a constant buffer for its vertex colors
 	m_sbtHelper.AddHitGroup(L"PlaneHitGroup", {});
 
@@ -947,6 +958,77 @@ void D3D12HelloTriangle::CreatePlaneVB() {
 	m_planeBufferView.BufferLocation = m_planeBuffer->GetGPUVirtualAddress();
 	m_planeBufferView.StrideInBytes = sizeof(Vertex);
 	m_planeBufferView.SizeInBytes = planeBufferSize;
+}
+
+void D3D12HelloTriangle::CreateCubeVB() {
+	// Define the geometry for a cube. 
+	Vertex cubeVertices[] = {
+		{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f, -0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f, -0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f, -0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f, -0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+
+		{{-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f,  0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f,  0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f,  0.5f,  0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+
+		{{-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		{{-0.5f,  0.5f, -0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+		{{-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+
+		 {{0.5f,  0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f, -0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f,  0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+
+		{{-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f, -0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f, -0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+		{{-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+
+		{{-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f, -0.5f},  {1.0f, 1.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		 {{0.5f,  0.5f,  0.5f},  {1.0f, 0.0f, 1.0f, 1.0f}},
+		{{-0.5f,  0.5f,  0.5f},  {0.0f, 0.0f, 1.0f, 1.0f}},
+		{{-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f, 1.0f, 1.0f}}
+	};
+	const UINT cubeBufferSize = sizeof(cubeVertices);
+
+	// Note: using upload heaps to transfer static data like vert buffers is not 
+	// recommended. Every time the GPU needs it, the upload heap will be 
+	// marshalled over. Please read up on Default Heap usage. An upload heap is 
+	// used here for code simplicity and because there are very few verts to 
+	// actually transfer. 
+	CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(cubeBufferSize);
+	ThrowIfFailed(m_device->CreateCommittedResource(&heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_CubeBuffer)));
+
+	// Copy the triangle data to the vertex buffer. 
+	UINT8* pVertexDataBegin;
+	CD3DX12_RANGE readRange(0, 0);
+
+	// We do not intend to read from this resource on the CPU. 
+	ThrowIfFailed(m_CubeBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+	memcpy(pVertexDataBegin, cubeVertices, sizeof(cubeVertices));
+	m_CubeBuffer->Unmap(0, nullptr);
+
+	// Initialize the vertex buffer view. 
+	m_cubeBufferView.BufferLocation = m_CubeBuffer->GetGPUVirtualAddress();
+	m_cubeBufferView.StrideInBytes = sizeof(Vertex);
+	m_cubeBufferView.SizeInBytes = cubeBufferSize;
 }
 
 void D3D12HelloTriangle::CreateGlobalConstantBuffer()
