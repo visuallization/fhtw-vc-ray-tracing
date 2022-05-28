@@ -220,6 +220,7 @@
     <FxCompile Include="res\shaders\Hit.hlsl" />
     <FxCompile Include="res\shaders\Miss.hlsl" />
     <FxCompile Include="res\shaders\RayGen.hlsl" />
+    <FxCompile Include="res\shaders\ShadowRay.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\glm\detail\func_common.inl" />
