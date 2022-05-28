@@ -56,6 +56,7 @@ void D3D12HelloTriangle::OnInit()
 	// rays (ray payload)
 	CreateRaytracingPipeline();
 
+	//CreateGlobalConstantBuffer();
 	CreatePerInstanceConstantBuffers();
 
 	// Allocate the buffer storing the raytracing output, with the same dimensions
@@ -795,18 +796,18 @@ void D3D12HelloTriangle::CreateShaderBindingTable()
 	//{
 	//	m_sbtHelper.AddHitGroup(
 	//		L"HitGroup",
-	//		{ (void*)(m_vertexBuffer->GetGPUVirtualAddress()),
+	//		{ (void*)(m_tetrahoidBuffer->GetGPUVirtualAddress()),
 	//		 (void*)(m_indexBuffer->GetGPUVirtualAddress()),
 	//		 (void*)(m_perInstanceConstantBuffers[0]->GetGPUVirtualAddress()) });
 	//}
+	
 	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
-	m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
-	//m_sbtHelper.AddHitGroup(L"CubeHitGroup", {});
+	m_sbtHelper.AddHitGroup(L"ShadowHitGroup", {});
 
 	// The plane also uses a constant buffer for its vertex colors
-	//m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { heapPointer });
-	m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { (void*)(m_perInstanceConstantBuffers[0]->GetGPUVirtualAddress()), heapPointer });
-	m_sbtHelper.AddHitGroup(L"ShadowHitGroup", {});
+	m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { heapPointer });
+	//m_sbtHelper.AddHitGroup(L"PlaneHitGroup", { (void*)(m_perInstanceConstantBuffers[0]->GetGPUVirtualAddress()), heapPointer });
+	//m_sbtHelper.AddHitGroup(L"ShadowHitGroup", {});
 
 	// Compute the size of the SBT given the number of shadersand their 
 	// parameters 
