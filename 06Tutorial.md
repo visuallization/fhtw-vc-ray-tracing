@@ -111,6 +111,7 @@ m_sbtHelper.AddHitGroup(L"HitGroup", {(void*)(m_vertexBuffer->GetGPUVirtualAddre
 Now the result in the raytracer is similar to the rasterizer. Note that if you have other hit groups attached to the same root signature,
 you would have to adjust their list of root parameters as well.
 ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_flat.png)
+
 # Perspective & Depth & Plane
 An orthographic view and single geometry does not help seeing the geometry right.
 Follow the tutorials:
@@ -119,10 +120,11 @@ Follow the tutorials:
 * [Depth Buffer](/rtx/raytracing/dxr/DX12-Raytracing-tutorial/Extra/dxr_tutorial_extra_depth_buffer): Adding the depth buffer to the raster
 This will give following result:
 ![](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/tetra_rt_3d.png)
+
 # Menger Sponge fractal
 In the following part of the tutorial we will add some more complex geometry, using indexed vertex buffers. The geometry itself is a randomized variation of the Menger Sponge fractal.
 Add the following declarations in the header file:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Indexed Geometry
 void CreateMengerSpongeVB();
 ComPtr< ID3D12Resource > m_mengerVB;
@@ -134,41 +136,96 @@ UINT m_mengerVertexCount;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The procedural generation code is provided in the `DXRHelpers.h`. This function also provides normal information, that we will not use in this tutorial.
 For compatibility, add the following constructors to the `Vertex` structure:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Indexed Geometry
 Vertex(XMFLOAT4 pos, XMFLOAT4 /*n*/, XMFLOAT4 col)
-:position(pos.x, pos.y, pos.z), color(col)
-{}
+	:position(pos.x, pos.y, pos.z), color(col) {}
 Vertex(XMFLOAT3 pos, XMFLOAT4 col)
-:position(pos), color(col)
-{}
+	:position(pos), color(col) {}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 At the end of the source file, add the implementation of the creation of the geometry buffers for the Menger Sponge. This method
 creates a vertex buffer and an index buffer, as well as views on those buffers for later use in the rasterization path.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Indexed Geometry
 void D3D12HelloTriangle::CreateMengerSpongeVB()
-{ std::vector< Vertex > vertices; std::vector< UINT > indices; nv_helpers_dx12::GenerateMengerSponge(3, 0.75, vertices, indices); { const UINT mengerVBSize = static_cast<UINT>(vertices.size()) * sizeof(Vertex); // Note: using upload heaps to transfer static data like vert buffers is not // recommended. Every time the GPU needs it, the upload heap will be // marshalled over. Please read up on Default Heap usage. An upload heap is // used here for code simplicity and because there are very few verts to // actually transfer. CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(mengerVBSize); ThrowIfFailed(m_device->CreateCommittedResource( &heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, // D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_mengerVB))); // Copy the triangle data to the vertex buffer. UINT8* pVertexDataBegin; CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU. ThrowIfFailed(m_mengerVB->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin))); memcpy(pVertexDataBegin, vertices.data(), mengerVBSize); m_mengerVB->Unmap(0, nullptr); // Initialize the vertex buffer view. m_mengerVBView.BufferLocation = m_mengerVB->GetGPUVirtualAddress(); m_mengerVBView.StrideInBytes = sizeof(Vertex); m_mengerVBView.SizeInBytes = mengerVBSize; } { const UINT mengerIBSize = static_cast<UINT>(indices.size()) * sizeof(UINT); // Note: using upload heaps to transfer static data like vert buffers is not // recommended. Every time the GPU needs it, the upload heap will be // marshalled over. Please read up on Default Heap usage. An upload heap is // used here for code simplicity and because there are very few verts to // actually transfer. CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(mengerIBSize); ThrowIfFailed(m_device->CreateCommittedResource( &heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, // D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_mengerIB))); // Copy the triangle data to the index buffer. UINT8* pIndexDataBegin; CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU. ThrowIfFailed(m_mengerIB->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin))); memcpy(pIndexDataBegin, indices.data(), mengerIBSize); m_mengerIB->Unmap(0, nullptr); // Initialize the index buffer view. m_mengerIBView.BufferLocation = m_mengerIB->GetGPUVirtualAddress(); m_mengerIBView.Format = DXGI_FORMAT_R32_UINT; m_mengerIBView.SizeInBytes = mengerIBSize; m_mengerIndexCount = static_cast<UINT>(indices.size()); m_mengerVertexCount = static_cast<UINT>(vertices.size()); }
+{ 
+	std::vector< Vertex > vertices; 
+	std::vector< UINT > indices; 
+	nv_helpers_dx12::GenerateMengerSponge(3, 0.75, vertices, indices); 
+	{ 
+		const UINT mengerVBSize = static_cast<UINT>(vertices.size()) * sizeof(Vertex); 
+		// Note: using upload heaps to transfer static data like vert buffers is not 
+		// recommended. Every time the GPU needs it, the upload heap will be 
+		// marshalled over. Please read up on Default Heap usage. An upload heap is 
+		// used here for code simplicity and because there are very few verts to 
+		// actually transfer. 
+		CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(mengerVBSize); 
+		ThrowIfFailed(m_device->CreateCommittedResource( &heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_mengerVB)));
+
+		// Copy the triangle data to the vertex buffer. 
+		UINT8* pVertexDataBegin; 
+		CD3DX12_RANGE readRange(0, 0); 
+		// We do not intend to read from this resource on the CPU. 
+		ThrowIfFailed(m_mengerVB->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin))); 
+		memcpy(pVertexDataBegin, vertices.data(), mengerVBSize); 
+		m_mengerVB->Unmap(0, nullptr); 
+		
+		// Initialize the vertex buffer view. 
+		m_mengerVBView.BufferLocation = m_mengerVB->GetGPUVirtualAddress(); 
+		m_mengerVBView.StrideInBytes = sizeof(Vertex); 
+		m_mengerVBView.SizeInBytes = mengerVBSize; 
+	} 
+	
+	{ 
+		const UINT mengerIBSize = static_cast<UINT>(indices.size()) * sizeof(UINT); 
+		// Note: using upload heaps to transfer static data like vert buffers is not 
+		// recommended. Every time the GPU needs it, the upload heap will be 
+		// marshalled over. Please read up on Default Heap usage. An upload heap is 
+		// used here for code simplicity and because there are very few verts to 
+		// actually transfer. 
+		CD3DX12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); 
+		CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(mengerIBSize); 
+		ThrowIfFailed(m_device->CreateCommittedResource( &heapProperty, D3D12_HEAP_FLAG_NONE, &bufferResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_mengerIB))); 
+		
+		// Copy the triangle data to the index buffer. 
+		UINT8* pIndexDataBegin; 
+		CD3DX12_RANGE readRange(0, 0); 
+		// We do not intend to read from this resource on the CPU. 
+		ThrowIfFailed(m_mengerIB->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin))); 
+		memcpy(pIndexDataBegin, indices.data(), mengerIBSize); 
+		m_mengerIB->Unmap(0, nullptr); 
+		
+		// Initialize the index buffer view. 
+		m_mengerIBView.BufferLocation = m_mengerIB->GetGPUVirtualAddress(); 
+		m_mengerIBView.Format = DXGI_FORMAT_R32_UINT; 
+		m_mengerIBView.SizeInBytes = mengerIBSize; 
+		m_mengerIndexCount = static_cast<UINT>(indices.size()); 
+		m_mengerVertexCount = static_cast<UINT>(vertices.size()); 
+	}
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## LoadAssets
 Call the geometry generation method right after the initialization of `m_vertexBufferView`:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Indexed Geometry
 CreateMengerSpongeVB();
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## PopulateCommandList
 We can now draw the geometry in the raster path, by adding the draw calls right after drawing the triangle:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Indexed Geometry
 // In a way similar to triangle rendering, rasterize the Menger Sponge
 m_commandList->IASetVertexBuffers(0, 1, &m_mengerVBView);
 m_commandList->IASetIndexBuffer(&m_mengerIBView);
 m_commandList->DrawIndexedInstanced(m_mengerIndexCount, 1, 0, 0, 0);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## CreateAccelerationStructures
 The acceleration structure build calls also need to be updated to reflect the new interface as well as to add the new geometry:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
 // #DXR Extra: Indexed Geometry
 // Build the bottom AS from the Menger Sponge vertex buffer
 // #DXR Extra: Indexed Geometry
@@ -178,9 +235,11 @@ AccelerationStructureBuffers mengerBottomLevelBuffers = CreateBottomLevelAS({{m_
 m_instances = { {bottomLevelBuffers.pResult, XMMatrixIdentity()}, { mengerBottomLevelBuffers.pResult, XMMatrixIdentity() }
 };
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## CreateShaderBindingTable
 We shouldn't forget to add the binding of the new instance in `CreateShaderBindingTable`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ m_sbtHelper.AddHitGroup(L"HitGroup", {(void*)(m_mengerVB->GetGPUVirtualAddress()), (void*)(m_mengerIB->GetGPUVirtualAddress())});
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
+m_sbtHelper.AddHitGroup(L"HitGroup", {(void*)(m_mengerVB->GetGPUVirtualAddress()), (void*)(m_mengerIB->GetGPUVirtualAddress())});
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The geometry is now visible in both rasterization and raytracing:
 ![Raster](/sites/default/files/pictures/2018/dx12_rtx_tutorial/Extra/mengerSpongePerspectiveRaster.png)
